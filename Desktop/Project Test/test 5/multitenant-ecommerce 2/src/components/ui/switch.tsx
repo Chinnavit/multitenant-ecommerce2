@@ -5,6 +5,14 @@ import * as SwitchPrimitive from "@radix-ui/react-switch"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Accessible toggle switch component with preset styling that renders a Radix Switch root and thumb.
+ *
+ * Accepts and forwards all props valid for `SwitchPrimitive.Root`.
+ *
+ * @param className - Additional CSS class names applied to the root element.
+ * @returns The rendered switch element with a styled thumb that reflects checked and unchecked states.
+ */
 function Switch({
   className,
   ...props

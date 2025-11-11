@@ -36,6 +36,16 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Renders a styled button element with selectable visual variant and size, optionally rendering a Radix `Slot` when composed as a child.
+ *
+ * @param className - Additional CSS class names to append to the component's computed classes.
+ * @param variant - Visual variant to apply (see `buttonVariants` for available values).
+ * @param size - Size variant to apply (see `buttonVariants` for available values).
+ * @param asChild - If `true`, renders a Radix `Slot` instead of a native `button`, allowing the consumer to provide the underlying element.
+ * @param props - Additional props forwarded to the rendered element.
+ * @returns A React element representing the styled button (or slot-wrapped element when `asChild` is `true`).
+ */
 function Button({
   className,
   variant,

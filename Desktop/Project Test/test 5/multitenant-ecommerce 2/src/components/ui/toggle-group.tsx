@@ -14,6 +14,13 @@ const ToggleGroupContext = React.createContext<
   variant: "default",
 })
 
+/**
+ * Render a ToggleGroup root that applies styling and provides `variant` and `size` to descendant items via context.
+ *
+ * @param variant - The visual variant to apply to the group and propagate to ToggleGroupItem children (controls theme/styling).
+ * @param size - The size token to apply to the group and propagate to ToggleGroupItem children (controls spacing and sizing).
+ * @returns The ToggleGroup root element with context set for descendant items.
+ */
 function ToggleGroup({
   className,
   variant,
@@ -40,6 +47,15 @@ function ToggleGroup({
   )
 }
 
+/**
+ * Renders a toggle item that inherits `variant` and `size` from ToggleGroupContext, falling back to the component props when the context is absent.
+ *
+ * @param className - Additional CSS classes applied to the item container
+ * @param children - Content rendered inside the toggle item
+ * @param variant - Visual variant to use if not provided by context
+ * @param size - Size to use if not provided by context
+ * @returns The rendered toggle group item element
+ */
 function ToggleGroupItem({
   className,
   children,

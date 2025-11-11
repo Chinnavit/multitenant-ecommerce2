@@ -4,6 +4,13 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a styled <table> element inside a horizontally scrollable container.
+ *
+ * @param className - Additional CSS class names to merge with the component's base table styles.
+ * @param props - All other props are passed through to the underlying `<table>` element.
+ * @returns A `<div>` containing a `<table>` with merged class names and data-slot attributes for layout and styling.
+ */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -19,6 +26,13 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
+/**
+ * Renders a table header (<thead>) element with default row-border styling.
+ *
+ * Merges the provided `className` with the component's base row-border styles and forwards remaining props to the underlying `<thead>`.
+ *
+ * @returns The rendered `<thead>` element
+ */
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
@@ -29,6 +43,11 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   )
 }
 
+/**
+ * Renders a styled table body (<tbody>) element.
+ *
+ * @returns A `<tbody>` element with `data-slot="table-body"` and composed class names that remove the bottom border from the last row and include any provided `className`.
+ */
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
@@ -39,6 +58,12 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   )
 }
 
+/**
+ * Renders a styled table footer element with the component's footer classes and data-slot.
+ *
+ * @param className - Additional class names to merge with the component's default footer styles
+ * @returns A `<tfoot>` element with base footer styling, `data-slot="table-footer"`, and any other props applied
+ */
 function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
@@ -52,6 +77,13 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
+/**
+ * Renders a styled table row element for use inside the table primitives.
+ *
+ * Forwards remaining props to the underlying <tr> and composes the provided `className` with default styling.
+ *
+ * @returns A `<tr>` element with `data-slot="table-row"` and class names for hover, selected, and border states.
+ */
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
@@ -65,6 +97,12 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
+/**
+ * Renders a styled table header cell (<th>) with a data-slot attribute and merged class names.
+ *
+ * @param className - Additional CSS classes to merge with the component's default header styles
+ * @returns A `<th>` element with the component's default styling, merged `className`, and all other props forwarded
+ */
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
@@ -78,6 +116,12 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
+/**
+ * Renders a styled table data cell (<td>) with consistent spacing and checkbox-aware layout.
+ *
+ * @param className - Additional CSS classes to merge with the component's base styles
+ * @returns The rendered `<td>` element with merged class names and forwarded props
+ */
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
@@ -91,6 +135,13 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   )
 }
 
+/**
+ * Renders a table caption element with muted foreground styling and spacing.
+ *
+ * @param className - Additional CSS class names to merge with the component's base styles.
+ * @param props - Additional attributes forwarded to the underlying `<caption>` element.
+ * @returns The rendered `<caption>` element with merged class names and forwarded props.
+ */
 function TableCaption({
   className,
   ...props

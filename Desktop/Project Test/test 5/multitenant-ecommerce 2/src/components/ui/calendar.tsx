@@ -11,6 +11,20 @@ import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
 
+/**
+ * Render a themed DayPicker calendar with custom styling, navigation buttons, and day button rendering.
+ *
+ * The component applies a comprehensive set of default classNames, merges any supplied `classNames` and `formatters` with sensible defaults (including a short month dropdown formatter), and exposes component overrides (e.g. `DayButton`, `Chevron`, `Root`, `WeekNumber`) while forwarding any other DayPicker props.
+ *
+ * @param className - Additional top-level class names applied to the calendar container.
+ * @param classNames - Partial mapping of DayPicker class names that will be merged with the component's defaults.
+ * @param showOutsideDays - When `true`, renders days from adjacent months in the calendar grid.
+ * @param captionLayout - Layout mode for the month caption (e.g., `"label"` or alternate layouts).
+ * @param buttonVariant - Variant passed to the navigation buttons (controls visual style).
+ * @param formatters - Formatter overrides that will be merged with the component's default formatters.
+ * @param components - Component overrides that will be merged with the component's default subcomponent implementations.
+ * @returns A configured DayPicker React element with the component's theme, behaviors, and merged overrides.
+ */
 function Calendar({
   className,
   classNames,
@@ -172,6 +186,18 @@ function Calendar({
   )
 }
 
+/**
+ * Render a calendar day button that reflects selection, range and focus states.
+ *
+ * Merges default DayPicker class names with custom styling and exposes state via
+ * data attributes (`data-day`, `data-selected-single`, `data-range-start`,
+ * `data-range-end`, `data-range-middle`) to drive visual styles.
+ *
+ * @param className - Additional CSS class names to apply to the button
+ * @param day - DayPicker `day` object for the cell (provides the `date`)
+ * @param modifiers - Modifier flags indicating selection, focus, and range position (`selected`, `focused`, `range_start`, `range_end`, `range_middle`)
+ * @returns A Button element used as the calendar day cell with appropriate attributes and focus handling
+ */
 function CalendarDayButton({
   className,
   day,

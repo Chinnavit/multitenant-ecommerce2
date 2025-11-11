@@ -6,12 +6,22 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a context menu root element with a "context-menu" data-slot.
+ *
+ * @returns The context menu root element with forwarded props.
+ */
 function ContextMenu({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
   return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />
 }
 
+/**
+ * Renders a context-menu trigger element that forwards all props to Radix's Trigger and sets `data-slot="context-menu-trigger"`.
+ *
+ * @returns The trigger element used to open the context menu.
+ */
 function ContextMenuTrigger({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Trigger>) {
@@ -20,6 +30,12 @@ function ContextMenuTrigger({
   )
 }
 
+/**
+ * Wraps the Radix ContextMenu Group primitive and applies a consistent `data-slot`.
+ *
+ * @param props - Props forwarded to `ContextMenuPrimitive.Group`
+ * @returns A JSX element rendering `ContextMenuPrimitive.Group` with `data-slot="context-menu-group"` and the provided props
+ */
 function ContextMenuGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Group>) {
@@ -28,6 +44,11 @@ function ContextMenuGroup({
   )
 }
 
+/**
+ * Renders a Radix UI Portal configured for context menu rendering.
+ *
+ * @returns A Radix Portal element that forwards all provided props and includes the `data-slot="context-menu-portal"` attribute.
+ */
 function ContextMenuPortal({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
@@ -36,12 +57,22 @@ function ContextMenuPortal({
   )
 }
 
+/**
+ * Renders a submenu container for a context menu.
+ *
+ * @returns A React element representing the context menu submenu container
+ */
 function ContextMenuSub({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Sub>) {
   return <ContextMenuPrimitive.Sub data-slot="context-menu-sub" {...props} />
 }
 
+/**
+ * Renders a radio group element for use inside a context menu and forwards all received props.
+ *
+ * @returns A JSX element representing the context menu radio group
+ */
 function ContextMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>) {
@@ -53,6 +84,14 @@ function ContextMenuRadioGroup({
   )
 }
 
+/**
+ * Renders a styled submenu trigger element with a trailing chevron icon.
+ *
+ * @param inset - When `true`, applies inset styling and sets the `data-inset` attribute.
+ * @param className - Additional CSS class names to append to the trigger.
+ * @param children - Content to render inside the trigger.
+ * @returns The rendered submenu trigger element.
+ */
 function ContextMenuSubTrigger({
   className,
   inset,
@@ -77,6 +116,14 @@ function ContextMenuSubTrigger({
   )
 }
 
+/**
+ * Renders a styled Radix SubContent element used for nested context menu panels.
+ *
+ * Accepts additional class names and forwards all other props to the underlying Radix SubContent.
+ *
+ * @param className - Optional additional CSS class names to apply to the container
+ * @returns The rendered SubContent element for a nested context menu
+ */
 function ContextMenuSubContent({
   className,
   ...props
@@ -93,6 +140,12 @@ function ContextMenuSubContent({
   )
 }
 
+/**
+ * Renders the context menu's content inside a portal with consistent styling and a data-slot attribute.
+ *
+ * @param className - Additional CSS class names to merge with the component's default styles.
+ * @returns The rendered context menu content element with applied styling and attributes.
+ */
 function ContextMenuContent({
   className,
   ...props
@@ -111,6 +164,14 @@ function ContextMenuContent({
   )
 }
 
+/**
+ * Renders a context menu item with consistent styling and optional inset or destructive variant.
+ *
+ * @param className - Additional CSS classes to apply to the item root.
+ * @param inset - If `true`, applies inset spacing (used for leading icons or checkboxes).
+ * @param variant - Visual variant of the item; `"destructive"` applies destructive styling, `"default"` applies normal styling.
+ * @returns The rendered context menu item element.
+ */
 function ContextMenuItem({
   className,
   inset,
@@ -134,6 +195,15 @@ function ContextMenuItem({
   )
 }
 
+/**
+ * Renders a styled context-menu checkbox item with a positioned check indicator.
+ *
+ * @param className - Optional additional CSS class names to apply to the item.
+ * @param children - Content to display as the item's label.
+ * @param checked - Whether the checkbox item is checked.
+ * @param props - Additional props passed to the underlying checkbox item element.
+ * @returns The rendered checkbox-style context menu item element.
+ */
 function ContextMenuCheckboxItem({
   className,
   children,
@@ -160,6 +230,11 @@ function ContextMenuCheckboxItem({
   )
 }
 
+/**
+ * Renders a styled context menu radio item with a positioned circular selection indicator.
+ *
+ * @returns A React element representing a context menu radio item with a left-positioned circular selection indicator and consistent menu styling.
+ */
 function ContextMenuRadioItem({
   className,
   children,
@@ -184,6 +259,13 @@ function ContextMenuRadioItem({
   )
 }
 
+/**
+ * Render a styled context menu label element.
+ *
+ * @param className - Additional CSS class names to apply to the label
+ * @param inset - If `true`, apply inset spacing (adds left padding)
+ * @returns The rendered `ContextMenuPrimitive.Label` element with data-slot "context-menu-label" and composed styling
+ */
 function ContextMenuLabel({
   className,
   inset,
@@ -204,6 +286,12 @@ function ContextMenuLabel({
   )
 }
 
+/**
+ * Renders a styled separator used inside the context menu.
+ *
+ * @param className - Additional CSS classes to apply to the separator element.
+ * @returns The rendered context menu separator element.
+ */
 function ContextMenuSeparator({
   className,
   ...props
@@ -217,6 +305,11 @@ function ContextMenuSeparator({
   )
 }
 
+/**
+ * Renders a styled span used to display a keyboard shortcut inside a context menu.
+ *
+ * @returns A span element that displays a keyboard shortcut with muted styling and right-aligned spacing.
+ */
 function ContextMenuShortcut({
   className,
   ...props

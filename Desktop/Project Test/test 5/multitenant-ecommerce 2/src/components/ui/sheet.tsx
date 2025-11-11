@@ -6,28 +6,59 @@ import { XIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders the Radix dialog Root configured as the sheet root and forwards all props.
+ *
+ * @returns A JSX element representing the sheet root (`SheetPrimitive.Root`) with `data-slot="sheet"`.
+ */
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
+/**
+ * Renders the Sheet trigger element and forwards received props to the underlying Trigger.
+ *
+ * @param props - Props passed through to the underlying Radix Trigger element
+ * @returns The trigger element for the Sheet
+ */
 function SheetTrigger({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
 }
 
+/**
+ * Renders a sheet close trigger element and forwards all props to the underlying Close primitive.
+ *
+ * @param props - Props forwarded to the underlying Radix `Close` component
+ * @returns The rendered sheet close element
+ */
 function SheetClose({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Close>) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
+/**
+ * Renders a Radix Portal configured for the sheet and forwards all props.
+ *
+ * @returns The sheet portal element (has `data-slot="sheet-portal"`) with the provided props applied.
+ */
 function SheetPortal({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Portal>) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
+/**
+ * Renders the sheet overlay element that provides a fixed, translucent backdrop and open/close animations.
+ *
+ * The component sets `data-slot="sheet-overlay"` and composes any provided `className` with the default
+ * positioning, backdrop, and animation classes.
+ *
+ * @param className - Additional CSS class names to merge with the component's default classes
+ * @returns The sheet overlay element
+ */
 function SheetOverlay({
   className,
   ...props
@@ -44,6 +75,12 @@ function SheetOverlay({
   )
 }
 
+/**
+ * Renders sheet content inside a portal with an overlay, slide-in animations, and a built-in close button.
+ *
+ * @param side - Position where the sheet appears; one of `"top"`, `"right"`, `"bottom"`, or `"left"`. Defaults to `"right"`.
+ * @returns The composed sheet content element (wrapped in a portal and overlay) with side-specific animations and layout.
+ */
 function SheetContent({
   className,
   children,
@@ -81,6 +118,12 @@ function SheetContent({
   )
 }
 
+/**
+ * Renders the header container for a Sheet with default spacing and padding.
+ *
+ * @param className - Additional CSS classes to merge with the header's default styles
+ * @returns A `div` element serving as the Sheet header
+ */
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -91,6 +134,13 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders the sheet footer container and applies layout and spacing suitable for footer content.
+ *
+ * Accepts all standard div props; merges `className` with the component's default footer classes.
+ *
+ * @param className - Additional class names to append to the footer's default styling
+ */
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -101,6 +151,11 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders a sheet title element with consistent foreground styling and data-slot="sheet-title".
+ *
+ * @returns The sheet Title element with applied font weight and foreground text styles, merged `className`, and all forwarded props.
+ */
 function SheetTitle({
   className,
   ...props
@@ -114,6 +169,13 @@ function SheetTitle({
   )
 }
 
+/**
+ * Renders the sheet description slot with muted, small text styling.
+ *
+ * Applies the `data-slot="sheet-description"` attribute, composes default muted/text-sm classes, and forwards any received props to the underlying Radix Description element.
+ *
+ * @returns The sheet description element styled with muted, small text and any provided props
+ */
 function SheetDescription({
   className,
   ...props
