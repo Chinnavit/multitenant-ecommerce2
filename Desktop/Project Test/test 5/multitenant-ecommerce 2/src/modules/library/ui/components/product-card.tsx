@@ -3,8 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { StarIcon } from "lucide-react";
 
-import { formatCurrency } from "@/lib/utils"; // อย่าลืม Import ตัวนี้
-
 interface ProductCardProps {
     id: string;
     name: string;
@@ -13,7 +11,6 @@ interface ProductCardProps {
     tenantImageUrl?: string | null;
     reviewRating: number;
     reviewCount: number;
-    price: number; // 1. เพิ่ม type price
 }
 
 export const ProductCard = ({
@@ -24,7 +21,6 @@ export const ProductCard = ({
     tenantImageUrl,
     reviewRating, 
     reviewCount,
-    price, // 2. รับค่า price
 }: ProductCardProps ) => {
     return (
     <Link prefetch href={`/library/${id}`}>
@@ -59,14 +55,6 @@ export const ProductCard = ({
                             </p>
                         </div>
                 )}
-            </div>
-            {/* 3. เพิ่มส่วนแสดงราคา */}
-            <div className="p-4">
-                <div className="relative px-2 py-1 border bg-pink-400 w-fit">
-                    <p className="text-sm font-medium">
-                        {formatCurrency(price)}
-                    </p> 
-                </div>
             </div>
         </div>
     </Link>

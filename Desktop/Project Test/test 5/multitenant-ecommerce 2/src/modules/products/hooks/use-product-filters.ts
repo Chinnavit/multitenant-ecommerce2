@@ -24,3 +24,6 @@ const params = {
 export const useProductFilters = () => {
     return useQueryStates(params);
 };
+
+
+

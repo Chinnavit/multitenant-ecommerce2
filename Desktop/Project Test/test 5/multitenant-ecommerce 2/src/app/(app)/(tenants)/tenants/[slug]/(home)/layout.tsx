@@ -25,9 +25,10 @@ const Layout= async({ children, params }: LayoutProps) => {
                 <Navbar slug={slug}/>
             </Suspense>
             </HydrationBoundary>
-            {/* แก้ไข: เอา div ที่มี class max-w-(--breakpoint-xl) ออก เพื่อให้หน้า ProductView ยืดเต็มจอได้ */}
             <div className="flex-1">
-                {children}
+                <div className="max-w-(--breakpoint-xl) mx-auto">
+                    {children}
+                </div>
             </div>
             <Footer />
         </div>

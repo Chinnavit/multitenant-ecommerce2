@@ -1,3 +1,5 @@
+"use client"
+
 import { InboxIcon } from "lucide-react";
 import { useSuspenseInfiniteQuery } from "@tanstack/react-query";
 
@@ -47,7 +49,6 @@ export const ProductList = () => {
                     tenantImageUrl={product.tenant?.image?.url}
                     reviewRating={product.reviewRating}
                     reviewCount={product.reviewCount}
-                    price={product.price} // เพิ่มบรรทัดนี้ เพื่อส่งค่า price ไปให้ Card
                 />
             ))}
         </div>
@@ -75,4 +76,4 @@ export const ProductListSkeleton = () => {
             ))}
         </div>
     );
-};
+};  

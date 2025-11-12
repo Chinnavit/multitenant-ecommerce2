@@ -4,9 +4,10 @@ import Image from "next/image";
 import { StarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+// TODO: Add real reatings
+
 import { formatCurrency, generateTenantURL } from "@/lib/utils";
 
-// เพิ่ม price: number ใน Interface
 interface ProductCardProps {
     id: string;
     name: string;
@@ -15,7 +16,7 @@ interface ProductCardProps {
     tenantImageUrl?: string | null;
     reviewRating: number;
     reviewCount: number;
-    price: number; 
+    price: number;
 }
 
 export const ProductCard = ({
@@ -26,15 +27,15 @@ export const ProductCard = ({
     tenantImageUrl,
     reviewRating, 
     reviewCount,
-    price // รับค่า price เข้ามา
+    price
 }: ProductCardProps ) => {
-    const router = useRouter(); // แก้คำผิดจาก rounter เป็น router
+    const rounter = useRouter();
 
     const handleUserClick = (e: React.MouseEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
 
-        router.push(generateTenantURL(tenantSlug));
+        rounter.push(generateTenantURL(tenantSlug));
     };
 
     return (
@@ -71,7 +72,6 @@ export const ProductCard = ({
                     </div>
                             )}
                     </div>
-                        {/* ส่วนแสดงราคา */}
                         <div className="p-4">
                             <div className="relative px-2 py-1 border bg-pink-400 w-fit">
                                 <p className="text-sm font-medium">
