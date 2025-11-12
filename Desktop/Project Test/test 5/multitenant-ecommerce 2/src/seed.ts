@@ -5,10 +5,6 @@ import { stripe } from "./lib/stripe";
 
 const categories = [
   {
-    name: "All",
-    slug: "all",
-  },
-  {
     name: "Custom Wall Frames",
     color: "#FFB347",
     slug: "custom-wall-frames",
@@ -68,73 +64,73 @@ const categories = [
       { name: "Travel Gallery", slug: "travel-gallery" },
     ],
   },
-]
+];
 
 const seed = async () => {
-    const payload = await getPayload({ config });
+  const payload = await getPayload({ config });
 
-    let adminAccount;
-    try {
-      adminAccount = await stripe.accounts.create({});
-    } catch (error) {
-      console.error('Failed to create Stripe account:', error);
-      throw new Error('Stripe account creation failed during seeding');
-    }
+  let adminAccount;
+  try {
+    adminAccount = await stripe.accounts.create({});
+  } catch (error) {
+    console.error("Failed to create Stripe account:", error);
+    throw new Error("Stripe account creation failed during seeding");
+  }
 
-    // Create admin tenant
-    const adminTenant = await payload.create({
-      collection: "tenants",
+  // Create admin tenant
+  const adminTenant = await payload.create({
+    collection: "tenants",
+    data: {
+      name: "admin",
+      slug: "admin",
+      stripeAccountId: adminAccount.id,
+    },
+  });
+
+  // Create admin user
+  await payload.create({
+    collection: "users",
+    data: {
+      email: "admin@demo.com",
+      password: "demo",
+      roles: ["super-admin"],
+      username: "admin",
+      tenants: [
+        {
+          tenant: adminTenant.id,
+        },
+      ],
+    },
+  });
+
+  for (const category of categories) {
+    const parentCategory = await payload.create({
+      collection: "categories",
       data: {
-        name: "admin",
-        slug: "admin",
-        stripeAccountId: adminAccount.id,
+        name: category.name,
+        slug: category.slug,
+        color: category.color,
+        parent: null,
       },
     });
-
-    // Create admin user
-    await payload.create({
-      collection:"users",
-      data:{
-        email: "admin@demo.com",
-        password: "demo",
-        roles: ["super-admin"],
-        username: "admin",
-        tenants: [
-          {
-            tenant: adminTenant.id,
-          },
-        ],
-      },
-    });
-
-    for (const category of categories) {
-        const parentCategory =  await payload.create({
-            collection: "categories",
-            data: {
-                name: category.name,
-                slug: category.slug,
-                color: category.color,
-                parent: null,
-            },
-        });
-            for (const subCategory of category.subcategories || []) {
-                await payload.create({
-                    collection: "categories",
-                    data: {
-                        name: subCategory.name,
-                        slug: subCategory.slug,
-                        parent: parentCategory.id,
+    for (const subCategory of category.subcategories || []) {
+      await payload.create({
+        collection: "categories",
+        data: {
+          name: subCategory.name,
+          slug: subCategory.slug,
+          parent: parentCategory.id,
         },
       });
     }
   }
-}
+};
 
 try {
   await seed();
-  console.log('Seeding compeleted successfully');
+  console.log("Seeding compeleted successfully");
   process.exit(0);
 } catch (error) {
-  console.log('Error during seeding:',error);
+  console.log("Error during seeding:", error);
   process.exit(1);
 }

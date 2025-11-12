@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 
 import { CategoriesGetManyOutput } from "@/modules/categories/type";
 
-import { SubcategoryMenu } from "./subcategory-menu"
-;
+import { SubcategoryMenu } from "./subcategory-menu";
 import Link from "next/link";
  
 
@@ -58,7 +57,7 @@ export const CategoryDropdown = ({
                     className={cn(
                     "h-11 px-4 bg-transparent border-transparent rounded-full hover:bg-white hover:border-primary text-black",
                     isActive && !isNavigationHovered && "bg-white border-primary",
-                    isOpen && "bg-white borde-primary shadow-[4px_4px_0px_rgba(0,0,0,1)] -treanslate-x-[4px] -treanslate-y-[4px]"
+                    isOpen && "bg-white border-primary shadow-[4px_4px_0px_rgba(0,0,0,1)] -treanslate-x-[4px] -treanslate-y-[4px]"
             )}
         >
                 <Link
@@ -71,7 +70,7 @@ export const CategoryDropdown = ({
                     <div
                     
                     className={cn(
-                        "opacity-0 absoulute -bottom-3 w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-l-transparent border-r-transparent border-b-black left-1/2 -translate-x-1/2",
+                        "opacity-0 absolute -bottom-3 w-0 h-0 border-l-[10px] border-r-r[10px] border-b-[10px] border-l-transparent border-r-tr",
                         isOpen && "opacity-100"
                         )}
                     />

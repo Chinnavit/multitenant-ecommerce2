@@ -92,7 +92,7 @@ export const Categories = ({ data }: Props) => {
             {/* Visible items */}
             <div 
                 ref={containerRef}
-                className="flex flex-nowrap items-center"
+                className="flex flex-nowrap items-center gap-4"
                 onMouseEnter={() => setIsAnyHovered(true)}
                 onMouseLeave={() => setIsAnyHovered(false)}
             >
