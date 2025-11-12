@@ -4,6 +4,12 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a table inside a horizontally scrollable, full-width container.
+ *
+ * @param className - Optional additional CSS classes to apply to the table element
+ * @returns A table element wrapped in a responsive container that enables horizontal scrolling
+ */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -19,6 +25,11 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
+/**
+ * Renders a styled table header section.
+ *
+ * @returns A `thead` element with slot attributes and merged classes for header styling.
+ */
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
@@ -29,6 +40,13 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   )
 }
 
+/**
+ * Render a styled tbody element that serves as the table body slot.
+ *
+ * The element includes a `data-slot="table-body"` attribute, applies default table-body styling, merges any provided `className`, and forwards all other props to the underlying `tbody`.
+ *
+ * @returns A `tbody` element with `data-slot="table-body"`, composed `className`, and forwarded props.
+ */
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
@@ -39,6 +57,13 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   )
 }
 
+/**
+ * Renders a styled table footer element for table layouts.
+ *
+ * @param className - Additional CSS class names to merge with the default footer classes.
+ * @param props - Additional attributes and event handlers forwarded to the underlying `tfoot` element.
+ * @returns The rendered `tfoot` element with `data-slot="table-footer"` and default footer styling.
+ */
 function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
@@ -52,6 +77,11 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
+/**
+ * Renders a table row element with a slot attribute and default row styling while merging a provided `className`.
+ *
+ * @returns A `tr` element with `data-slot="table-row"` and the combined class names
+ */
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
@@ -65,6 +95,13 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
+/**
+ * Renders a table header cell (<th>) with the component's default header styles.
+ *
+ * @param className - Additional CSS class(es) to merge with the component's default classes
+ * @param props - Additional attributes and event handlers forwarded to the underlying `<th>` element
+ * @returns The rendered `<th>` element with merged classes and forwarded props
+ */
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
@@ -78,6 +115,11 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
+/**
+ * Renders a table cell (`td`) element with default spacing, alignment, and slot-specific classes.
+ *
+ * @returns A `td` element with the component's default table-cell classes merged with the provided `className` and all other props forwarded.
+ */
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
@@ -91,6 +133,11 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   )
 }
 
+/**
+ * Renders a table caption element with muted text styling and a slot attribute for composition.
+ *
+ * @returns A `caption` element with `data-slot="table-caption"` and merged styling classes.
+ */
 function TableCaption({
   className,
   ...props

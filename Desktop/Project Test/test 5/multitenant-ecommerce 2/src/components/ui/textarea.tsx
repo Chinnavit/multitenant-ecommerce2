@@ -2,6 +2,16 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a textarea element with composed styling and forwarded props.
+ *
+ * The component applies a base set of styling classes (including responsive and dark-mode adjustments),
+ * appends "md:text-base" and "bg-white", merges any `className` provided, and forwards all other textarea props to the underlying element.
+ *
+ * @param className - Additional CSS classes to append to the component's composed class list
+ * @param props - Remaining standard textarea props which are forwarded to the underlying element
+ * @returns A JSX textarea element with the composed `className`, `data-slot="textarea"`, and forwarded props
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

@@ -6,12 +6,23 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders a Radix DropdownMenu root element with a standardized `data-slot="dropdown-menu"`.
+ *
+ * @param props - Props forwarded to the underlying Radix DropdownMenu Root
+ * @returns The DropdownMenu root element with the `data-slot="dropdown-menu"` attribute applied
+ */
 function DropdownMenu({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
 }
 
+/**
+ * Renders a Radix DropdownMenu portal element with a consistent data-slot attribute.
+ *
+ * @returns The `DropdownMenuPrimitive.Portal` element with `data-slot="dropdown-menu-portal"` and all received props forwarded.
+ */
 function DropdownMenuPortal({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Portal>) {
@@ -20,6 +31,11 @@ function DropdownMenuPortal({
   )
 }
 
+/**
+ * Renders a DropdownMenu trigger element that adds a standardized `data-slot` attribute and forwards all props.
+ *
+ * @returns A Radix `Trigger` element with `data-slot="dropdown-menu-trigger"` and the provided props forwarded.
+ */
 function DropdownMenuTrigger({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
@@ -31,6 +47,16 @@ function DropdownMenuTrigger({
   )
 }
 
+/**
+ * Renders the dropdown menu content panel inside a Portal with styling and positioning.
+ *
+ * This component displays the dropdown's content surface, applies consistent UI classes,
+ * and accepts positioning offsets and additional class names.
+ *
+ * @param className - Additional CSS class names to apply to the content container.
+ * @param sideOffset - Distance in pixels between the trigger and the content; defaults to `4`.
+ * @returns The rendered dropdown menu content element.
+ */
 function DropdownMenuContent({
   className,
   sideOffset = 4,
@@ -51,6 +77,11 @@ function DropdownMenuContent({
   )
 }
 
+/**
+ * Groups related menu items inside a dropdown menu.
+ *
+ * @returns A React element rendering a Radix `DropdownMenuPrimitive.Group` with `data-slot="dropdown-menu-group"` and all received props forwarded.
+ */
 function DropdownMenuGroup({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Group>) {
@@ -59,6 +90,13 @@ function DropdownMenuGroup({
   )
 }
 
+/**
+ * Renders a styled dropdown menu item with optional inset spacing and visual variants.
+ *
+ * @param inset - If true, applies inset spacing (increases left padding) to align with icons/content.
+ * @param variant - Visual variant of the item; `"default"` for normal styling or `"destructive"` for danger/destructive styling.
+ * @returns The rendered dropdown menu item element.
+ */
 function DropdownMenuItem({
   className,
   inset,
@@ -82,6 +120,14 @@ function DropdownMenuItem({
   )
 }
 
+/**
+ * Renders a checkbox-styled dropdown menu item with an embedded check indicator.
+ *
+ * @param className - Additional CSS classes applied to the item container
+ * @param children - Content displayed as the menu item's label
+ * @param checked - Whether the item is currently checked
+ * @returns The rendered checkbox-style dropdown menu item element
+ */
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -108,6 +154,11 @@ function DropdownMenuCheckboxItem({
   )
 }
 
+/**
+ * Wraps Radix DropdownMenu RadioGroup and applies the `data-slot` attribute for menu grouping.
+ *
+ * @returns A React element representing a radio-group menu section with forwarded props and `data-slot="dropdown-menu-radio-group"`.
+ */
 function DropdownMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
@@ -119,6 +170,11 @@ function DropdownMenuRadioGroup({
   )
 }
 
+/**
+ * Renders a styled radio-style selectable dropdown menu item with a circular item indicator.
+ *
+ * @returns A React element representing a radio-style dropdown menu item with applied styling and data attributes.
+ */
 function DropdownMenuRadioItem({
   className,
   children,
@@ -143,6 +199,12 @@ function DropdownMenuRadioItem({
   )
 }
 
+/**
+ * Renders a labeled section header inside the dropdown menu.
+ *
+ * @param inset - When `true`, applies inset styling (increases left padding) to align the label with indented items.
+ * @returns The rendered dropdown menu label element.
+ */
 function DropdownMenuLabel({
   className,
   inset,
@@ -163,6 +225,12 @@ function DropdownMenuLabel({
   )
 }
 
+/**
+ * Renders a styled horizontal separator for the dropdown menu.
+ *
+ * @param className - Additional class names to apply to the separator
+ * @returns The rendered dropdown menu separator element
+ */
 function DropdownMenuSeparator({
   className,
   ...props
@@ -176,6 +244,11 @@ function DropdownMenuSeparator({
   )
 }
 
+/**
+ * Renders a right-aligned shortcut label for use inside a dropdown menu.
+ *
+ * @returns A `span` element styled as a right-aligned, muted shortcut label for a dropdown menu.
+ */
 function DropdownMenuShortcut({
   className,
   ...props
@@ -192,12 +265,25 @@ function DropdownMenuShortcut({
   )
 }
 
+/**
+ * Renders a Radix DropdownMenu Sub wrapper that adds a `data-slot` attribute and forwards all props.
+ *
+ * @returns The Sub primitive element with `data-slot="dropdown-menu-sub"` and all received props forwarded.
+ */
 function DropdownMenuSub({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
   return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />
 }
 
+/**
+ * Renders a submenu trigger with consistent styling and a trailing chevron icon.
+ *
+ * @param className - Additional CSS class names to apply to the trigger element.
+ * @param inset - When `true`, applies inset styling (adds left padding) to align with grouped items.
+ * @param children - Content to render inside the trigger.
+ * @returns The styled submenu trigger element that opens a nested dropdown.
+ */
 function DropdownMenuSubTrigger({
   className,
   inset,
@@ -222,6 +308,12 @@ function DropdownMenuSubTrigger({
   )
 }
 
+/**
+ * Renders a styled submenu content panel for a dropdown's sub-menu.
+ *
+ * @param className - Optional additional class names to merge with the component's default styles.
+ * @returns The Radix `SubContent` element with themed styling, `data-slot="dropdown-menu-sub-content"`, and all other props forwarded.
+ */
 function DropdownMenuSubContent({
   className,
   ...props

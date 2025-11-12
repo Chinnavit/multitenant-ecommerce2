@@ -6,12 +6,22 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Renders the root element for a context menu and attaches data-slot="context-menu".
+ *
+ * @returns The context menu root element with any provided props applied.
+ */
 function ContextMenu({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
   return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />
 }
 
+/**
+ * Renders a context menu trigger element and marks it with a data-slot attribute.
+ *
+ * @returns The rendered trigger element with any provided props applied.
+ */
 function ContextMenuTrigger({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Trigger>) {
@@ -20,6 +30,11 @@ function ContextMenuTrigger({
   )
 }
 
+/**
+ * Wraps Radix's ContextMenu Group primitive, adding a consistent `data-slot="context-menu-group"` attribute.
+ *
+ * @returns A `ContextMenuPrimitive.Group` element with `data-slot="context-menu-group"` and all provided props applied.
+ */
 function ContextMenuGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Group>) {
@@ -28,6 +43,11 @@ function ContextMenuGroup({
   )
 }
 
+/**
+ * Portal wrapper that mounts context menu children into a Radix portal and tags it with `data-slot="context-menu-portal"`.
+ *
+ * @returns A Radix Portal element with `data-slot="context-menu-portal"` and all provided props forwarded.
+ */
 function ContextMenuPortal({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
@@ -36,12 +56,22 @@ function ContextMenuPortal({
   )
 }
 
+/**
+ * Renders a context menu submenu wrapper that attaches a `data-slot="context-menu-sub"` attribute.
+ *
+ * @returns A JSX element representing the submenu wrapper for the context menu
+ */
 function ContextMenuSub({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Sub>) {
   return <ContextMenuPrimitive.Sub data-slot="context-menu-sub" {...props} />
 }
 
+/**
+ * Renders a context menu radio group with the appropriate data-slot attribute.
+ *
+ * @returns A RadioGroup element with data-slot="context-menu-radio-group" that applies the provided props
+ */
 function ContextMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>) {
@@ -53,6 +83,15 @@ function ContextMenuRadioGroup({
   )
 }
 
+/**
+ * Renders a submenu trigger for the context menu that includes a trailing chevron and optional inset styling.
+ *
+ * @param className - Additional CSS class names to apply to the trigger.
+ * @param inset - If `true`, applies inset padding to visually offset the trigger.
+ * @param children - Trigger content to display.
+ * @param props - Additional props are forwarded to the underlying Radix `SubTrigger`.
+ * @returns A JSX element representing the context menu submenu trigger.
+ */
 function ContextMenuSubTrigger({
   className,
   inset,
@@ -77,6 +116,11 @@ function ContextMenuSubTrigger({
   )
 }
 
+/**
+ * Renders the submenu content for a context menu with consistent styling and a data-slot attribute.
+ *
+ * @returns A JSX element representing the styled submenu content with any provided props and className applied.
+ */
 function ContextMenuSubContent({
   className,
   ...props
@@ -93,6 +137,11 @@ function ContextMenuSubContent({
   )
 }
 
+/**
+ * Renders the context menu surface inside a Portal with built-in styling, sizing, and open/close animations.
+ *
+ * @returns The context menu content element rendered inside a Portal
+ */
 function ContextMenuContent({
   className,
   ...props
@@ -111,6 +160,15 @@ function ContextMenuContent({
   )
 }
 
+/**
+ * Render a context menu item that supports optional inset spacing and a destructive visual variant.
+ *
+ * Forwards any additional props to the underlying context menu primitive.
+ *
+ * @param inset - When `true`, applies inset spacing (adds left padding) used to align with leading icons or indicators.
+ * @param variant - Selects visual styling: `"default"` for normal items, `"destructive"` for visually emphasized destructive items.
+ * @returns The rendered context menu item element.
+ */
 function ContextMenuItem({
   className,
   inset,
@@ -134,6 +192,13 @@ function ContextMenuItem({
   )
 }
 
+/**
+ * Renders a checkbox-style context menu item with a leading check indicator.
+ *
+ * @param checked - `true` if the item is checked, `false` otherwise.
+ * @param children - Display content for the menu item.
+ * @returns The rendered context menu checkbox item element.
+ */
 function ContextMenuCheckboxItem({
   className,
   children,
@@ -160,6 +225,11 @@ function ContextMenuCheckboxItem({
   )
 }
 
+/**
+ * Renders a styled context menu radio item that displays a leading radio indicator.
+ *
+ * @returns A JSX element representing the context menu radio item with a leading radio indicator.
+ */
 function ContextMenuRadioItem({
   className,
   children,
@@ -184,6 +254,13 @@ function ContextMenuRadioItem({
   )
 }
 
+/**
+ * Render a label inside the context menu.
+ *
+ * @param className - Additional class names to apply to the label
+ * @param inset - If `true`, add left padding to align the label with items that have leading indicators
+ * @returns The context menu label element
+ */
 function ContextMenuLabel({
   className,
   inset,
@@ -204,6 +281,12 @@ function ContextMenuLabel({
   )
 }
 
+/**
+ * Renders a context menu separator with the component's default styling.
+ *
+ * @param className - Additional CSS classes to append to the separator's base classes
+ * @returns A React element representing a styled separator for the context menu
+ */
 function ContextMenuSeparator({
   className,
   ...props
@@ -217,6 +300,11 @@ function ContextMenuSeparator({
   )
 }
 
+/**
+ * Renders a styled span for displaying a keyboard shortcut aligned to the end of a menu item.
+ *
+ * @returns A span element used to display shortcut text with muted foreground styling, small uppercase tracking, and automatic left margin to align it to the end of the menu item.
+ */
 function ContextMenuShortcut({
   className,
   ...props

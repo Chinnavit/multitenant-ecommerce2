@@ -8,7 +8,23 @@ import { console } from "inspector";
 
 import { ExpandLineItem } from "@/modules/checkout/types";
 
-export async function POST(req: Request) {
+/**
+     * Handle incoming Stripe webhook events for checkout session completions and account updates.
+     *
+     * Processes verified Stripe events from the request body and signature header. For
+     * "checkout.session.completed" events it creates an order document per line item using
+     * the session's expanded line items and the user ID from session metadata. For
+     * "account.updated" events it updates the corresponding tenant's `stripeDetailsSubmitted`
+     * flag based on the Stripe account data.
+     *
+     * @param req - The incoming HTTP request containing the Stripe webhook payload and the
+     *   `stripe-signature` header used for verification.
+     * @returns A JSON NextResponse:
+     *   - 400 with `{ message: "Webhook Error: <error>" }` if signature verification fails,
+     *   - 500 with `{ message: "Webhook handler failed" }` if event processing fails,
+     *   - 200 with `{ message: "Received" }` when the event is processed successfully.
+     */
+    export async function POST(req: Request) {
     let event: Stripe.Event;
     
     try {

@@ -6,6 +6,13 @@ import { CircleIcon } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Render a RadioGroup root element with a grid layout and customizable classes.
+ *
+ * @param className - Optional additional CSS class names to merge with the default "grid gap-3" layout.
+ * @param props - Additional props forwarded to the underlying Radix `RadioGroupPrimitive.Root`.
+ * @returns A React element for the radio group root with applied layout and merged class names.
+ */
 function RadioGroup({
   className,
   ...props
@@ -19,6 +26,15 @@ function RadioGroup({
   )
 }
 
+/**
+ * Render a styled radio group item with a centered visual indicator.
+ *
+ * Renders a circular radio control that applies component-specific styling and accessibility attributes.
+ *
+ * @param className - Optional additional CSS classes to merge with the component's default styles.
+ * @param props - Additional props forwarded to the underlying Radix `RadioGroup.Item` element.
+ * @returns A React element representing a styled radio group item.
+ */
 function RadioGroupItem({
   className,
   ...props

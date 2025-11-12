@@ -28,6 +28,14 @@ const toggleVariants = cva(
   }
 )
 
+/**
+ * Renders a styled Toggle component using the Radix Toggle primitive with configurable visual variant and size.
+ *
+ * @param className - Additional CSS classes to apply to the toggle
+ * @param variant - Visual variant of the toggle (controls border/background/hover styles)
+ * @param size - Size variant of the toggle (controls height and horizontal padding)
+ * @returns The rendered Toggle root element
+ */
 function Toggle({
   className,
   variant,

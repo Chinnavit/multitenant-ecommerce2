@@ -14,6 +14,15 @@ const ToggleGroupContext = React.createContext<
   variant: "default",
 })
 
+/**
+ * Render a ToggleGroup wrapper that supplies `variant` and `size` to its descendants via context.
+ *
+ * @param className - Additional CSS classes applied to the ToggleGroup root
+ * @param variant - Visual variant forwarded to children and set as the `data-variant` attribute
+ * @param size - Size forwarded to children and set as the `data-size` attribute
+ * @param children - Child elements rendered inside the ToggleGroup
+ * @returns The Radix ToggleGroup root element with composed className and provided context
+ */
 function ToggleGroup({
   className,
   variant,
@@ -40,6 +49,15 @@ function ToggleGroup({
   )
 }
 
+/**
+ * Renders a styled ToggleGroup item that inherits variant and size from context when available.
+ *
+ * @param className - Additional class names applied to the item
+ * @param children - Content to render inside the item
+ * @param variant - Visual variant; falls back to the group's `variant` from context when omitted
+ * @param size - Size token; falls back to the group's `size` from context when omitted
+ * @returns The rendered ToggleGroup item element
+ */
 function ToggleGroupItem({
   className,
   children,
