@@ -10,9 +10,9 @@ const categories = [
     slug: "custom-wall-frames",
     subcategories: [
       { name: "Modern Frame", slug: "modern-frame" },
-      { name: "Classic Frame", slug: "classic-frame" },
       { name: "Rustic Frame", slug: "rustic-frame" },
       { name: "Ornate Frame", slug: "ornate-frame" },
+      { name: "Classic Frame", slug: "classic-frame" },
       { name: "Minimalist Frame", slug: "minimalist-frame" },
     ],
   },
@@ -21,11 +21,11 @@ const categories = [
     color: "#7EC8E3",
     slug: "holiday-gifts",
     subcategories: [
-      { name: "Christmas Frames", slug: "christmas-frames" },
-      { name: "Birthday Frames", slug: "birthday-frames" },
-      { name: "Anniversary Frames", slug: "anniversary-frames" },
-      { name: "Graduation Frames", slug: "graduation-frames" },
       { name: "Wedding Frames", slug: "wedding-frames" },
+      { name: "Birthday Frames", slug: "birthday-frames" },
+      { name: "Christmas Frames", slug: "christmas-frames" },
+      { name: "Graduation Frames", slug: "graduation-frames" },
+      { name: "Anniversary Frames", slug: "anniversary-frames" },
     ],
   },
   {
@@ -35,8 +35,8 @@ const categories = [
     subcategories: [
       { name: "Photo Ornaments", slug: "photo-ornaments" },
       { name: "Glass Ornaments", slug: "glass-ornaments" },
-      { name: "Wooden Ornaments", slug: "wooden-ornaments" },
       { name: "Metal Ornaments", slug: "metal-ornaments" },
+      { name: "Wooden Ornaments", slug: "wooden-ornaments" },
       { name: "Ceramic Ornaments", slug: "ceramic-ornaments" },
     ],
   },
@@ -45,8 +45,8 @@ const categories = [
     color: "#FFE066",
     slug: "tabletop-frames",
     subcategories: [
-      { name: "Desktop Frame", slug: "desktop-frame" },
       { name: "Easel Frame", slug: "easel-frame" },
+      { name: "Desktop Frame", slug: "desktop-frame" },
       { name: "Collage Frame", slug: "collage-frame" },
       { name: "Multi-Photo Frame", slug: "multi-photo-frame" },
       { name: "Digital Tabletop Frame", slug: "digital-tabletop-frame" },
@@ -57,11 +57,11 @@ const categories = [
     color: "#77DD77",
     slug: "gallery-walls",
     subcategories: [
-      { name: "Pre-Designed Gallery", slug: "pre-designed-gallery" },
       { name: "Custom Layout", slug: "custom-layout" },
       { name: "Themed Gallery", slug: "themed-gallery" },
       { name: "Family Gallery", slug: "family-gallery" },
       { name: "Travel Gallery", slug: "travel-gallery" },
+      { name: "Pre-Designed Gallery", slug: "pre-designed-gallery" },
     ],
   },
 ];
@@ -84,6 +84,7 @@ const seed = async () => {
       name: "admin",
       slug: "admin",
       stripeAccountId: adminAccount.id,
+      stripeDetailsSubmitted: false,
     },
   });
 
