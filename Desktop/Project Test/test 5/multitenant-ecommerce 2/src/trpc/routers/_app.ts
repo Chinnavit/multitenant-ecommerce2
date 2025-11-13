@@ -9,6 +9,8 @@ import { checkoutRouter } from '@/modules/checkout/server/procedures';
 import { productsRouter } from '@/modules/products/server/procedures';
 import { categoriesRouter } from '@/modules/categories/server/procedures';
 
+import { framingRouter } from '@/modules/framing/server/procedures'; // <--- เพิ่มบรรทัดนี้
+
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
@@ -19,6 +21,8 @@ export const appRouter = createTRPCRouter({
   checkout: checkoutRouter,
   products: productsRouter,
   categories: categoriesRouter,
+
+  framing: framingRouter, // <--- เพิ่มบรรทัดนี้ (สำคัญมาก! ถ้าไม่มีบรรทัดนี้ หน้าจอจะพัง)
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;
