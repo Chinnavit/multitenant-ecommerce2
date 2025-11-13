@@ -6,6 +6,7 @@ interface FrameVisualizerProps {
   matColor: string;      // สีกระดาษขอบ (เช่น white, #FDF5E6)
   frameWidth: number;    // ความหนากรอบ (px)
   matWidth: number;      // ความหนากระดาษขอบ (px)
+  alt?: string;          // Alt text for the image
 }
 
 export const FrameVisualizer = ({
@@ -14,6 +15,7 @@ export const FrameVisualizer = ({
   matColor,
   frameWidth,
   matWidth,
+  alt = "Framed image preview",
 }: FrameVisualizerProps) => {
   return (
     <div className="flex justify-center items-center p-4 bg-gray-100 rounded-lg">
@@ -39,7 +41,7 @@ export const FrameVisualizer = ({
           <div className="relative aspect-[4/3] w-[300px] lg:w-[500px] bg-gray-200">
             <Image
               src={imageSrc}
-              alt="Preview"
+              alt={alt}
               fill
               className="object-cover"
             />
