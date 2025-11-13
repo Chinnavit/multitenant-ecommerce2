@@ -75,6 +75,8 @@ export interface Config {
     tenants: Tenant;
     orders: Order;
     reviews: Review;
+    frames: Frame;
+    mats: Mat;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -93,6 +95,8 @@ export interface Config {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    frames: FramesSelect<false> | FramesSelect<true>;
+    mats: MatsSelect<false> | MatsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -315,6 +319,18 @@ export interface Order {
    * Stripe account associated with the order
    */
   stripeAccountId?: string | null;
+  /**
+   * Custom framing details selected by user
+   */
+  configuration?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -328,6 +344,38 @@ export interface Review {
   rating: number;
   product: string | Product;
   user: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * จัดการลายกรอบรูปและราคาต่อนิ้ว (Moulding Inventory)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "frames".
+ */
+export interface Frame {
+  id: string;
+  name: string;
+  sku?: string | null;
+  image: string | Media;
+  pricePerInch: number;
+  widthInches: number;
+  material?: ('wood' | 'metal' | 'plastic') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * จัดการสีกระดาษขอบ (Mat Boards)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mats".
+ */
+export interface Mat {
+  id: string;
+  name: string;
+  colorCode: string;
+  price?: number | null;
+  texture?: (string | null) | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -369,6 +417,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'frames';
+        value: string | Frame;
+      } | null)
+    | ({
+        relationTo: 'mats';
+        value: string | Mat;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -526,6 +582,7 @@ export interface OrdersSelect<T extends boolean = true> {
   product?: T;
   stripeCheckoutSessionId?: T;
   stripeAccountId?: T;
+  configuration?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -538,6 +595,32 @@ export interface ReviewsSelect<T extends boolean = true> {
   rating?: T;
   product?: T;
   user?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "frames_select".
+ */
+export interface FramesSelect<T extends boolean = true> {
+  name?: T;
+  sku?: T;
+  image?: T;
+  pricePerInch?: T;
+  widthInches?: T;
+  material?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mats_select".
+ */
+export interface MatsSelect<T extends boolean = true> {
+  name?: T;
+  colorCode?: T;
+  price?: T;
+  texture?: T;
   updatedAt?: T;
   createdAt?: T;
 }
