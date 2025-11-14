@@ -238,6 +238,13 @@ export interface Product {
   id: string;
   tenant?: (string | null) | Tenant;
   name: string;
+  /**
+   * Price in THB
+   */
+  price: number;
+  category?: (string | null) | Category;
+  tags?: (string | Tag)[] | null;
+  image?: (string | null) | Media;
   description?: {
     root: {
       type: string;
@@ -253,14 +260,6 @@ export interface Product {
     };
     [k: string]: unknown;
   } | null;
-  /**
-   * Price in THB
-   */
-  price: number;
-  category?: (string | null) | Category;
-  tags?: (string | Tag)[] | null;
-  image?: (string | null) | Media;
-  cover?: (string | null) | Media;
   refundPolicy?: ('30-day' | '14-day' | '7-day' | '3-day' | '1-day' | 'no-refunds') | null;
   /**
    * Protected content only visible to customer after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Supports Markdown formatting
@@ -319,18 +318,6 @@ export interface Order {
    * Stripe account associated with the order
    */
   stripeAccountId?: string | null;
-  /**
-   * Custom framing details selected by user
-   */
-  configuration?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -536,12 +523,11 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
-  description?: T;
   price?: T;
   category?: T;
   tags?: T;
   image?: T;
-  cover?: T;
+  description?: T;
   refundPolicy?: T;
   content?: T;
   isPrivate?: T;
@@ -582,7 +568,6 @@ export interface OrdersSelect<T extends boolean = true> {
   product?: T;
   stripeCheckoutSessionId?: T;
   stripeAccountId?: T;
-  configuration?: T;
   updatedAt?: T;
   createdAt?: T;
 }

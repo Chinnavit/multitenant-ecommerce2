@@ -64,9 +64,6 @@ export const SignUpView = () => {
     }
 
     const username = form.watch("username");
-    const usernameErrors = form.formState.errors.username;
-
-    const showPreview = username && !usernameErrors;
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-5">

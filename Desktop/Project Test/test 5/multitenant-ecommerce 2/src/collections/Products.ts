@@ -26,10 +26,6 @@ export const Products: CollectionConfig = {
       required: true,
     },
     {
-      name: "description",
-      type: "richText",
-    },
-    {
       name: "price",
       type: "number",
       required: true,
@@ -55,9 +51,8 @@ export const Products: CollectionConfig = {
       relationTo: "media",
     },
     {
-      name: "cover",
-      type: "upload",
-      relationTo: "media",
+      name: "description",
+      type: "richText",
     },
     {
       name: "refundPolicy",
@@ -89,7 +84,7 @@ export const Products: CollectionConfig = {
       defaultValue: false,
       type: "checkbox",
       admin: {
-        description: "If checked, this product will be archived ",
+        description: "If checked, this product will be archived",
       },
     },
   ],
