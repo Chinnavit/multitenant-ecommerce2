@@ -113,14 +113,14 @@ export const checkoutRouter = createTRPCRouter({
       if (!tenant) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Tenants not found",
+          message: "Tenant not found",
         });
       }
 
       if (!tenant.stripeDetailsSubmitted) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Tenants not allowed to sell products",
+          message: "Tenant not allowed to sell products",,
         });
       }
 
@@ -177,7 +177,7 @@ export const checkoutRouter = createTRPCRouter({
       if (!checkout.url) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to cerate checkout session",
+          message: "Failed to create checkout session",
         });
       }
 
@@ -193,7 +193,7 @@ export const checkoutRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const data = await ctx.db.find({
         collection: "products",
-        depth: 2, // Populate "categories", "image", "tennant" & "tenant.image"
+        depth: 2, // Populate "categories", "image", "tenant" & "tenant.image"
         where: {
           and: [
             {

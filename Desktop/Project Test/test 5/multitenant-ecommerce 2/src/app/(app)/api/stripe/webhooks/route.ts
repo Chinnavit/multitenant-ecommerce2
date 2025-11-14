@@ -21,11 +21,8 @@ export async function POST(req: Request) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
 
-    if (error! instanceof Error) {
-      console.log(error);
-    }
-
-    console.log(`❌ Error message: ${errorMessage}`);
+    console.error("❌ Error constructing Stripe event:", error);
+    console.error(`Error message: ${errorMessage}`);
     return NextResponse.json(
       { message: `Webhook Error: ${errorMessage}` },
       { status: 400 }
