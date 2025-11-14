@@ -50,12 +50,12 @@ export default buildConfig({
     Mats,
   ],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET || (() => { throw new Error("DATABASE_URI not found") })(),
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI || '',
+    url: process.env.DATABASE_URI || (() => { throw new Error("DATABASE_URI not found") })(),
   }),
   sharp,
   plugins: [

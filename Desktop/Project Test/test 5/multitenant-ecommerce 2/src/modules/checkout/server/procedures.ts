@@ -120,7 +120,7 @@ export const checkoutRouter = createTRPCRouter({
       if (!tenant.stripeDetailsSubmitted) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "Tenant not allowed to sell products",,
+          message: "Tenant not allowed to sell products",
         });
       }
 
