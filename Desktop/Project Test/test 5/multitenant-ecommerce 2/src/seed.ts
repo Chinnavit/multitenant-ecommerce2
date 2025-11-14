@@ -84,6 +84,7 @@ const seed = async () => {
       name: "admin",
       slug: "admin",
       stripeAccountId: adminAccount.id,
+      stripeDetailsSubmitted: false,
     },
   });
 
