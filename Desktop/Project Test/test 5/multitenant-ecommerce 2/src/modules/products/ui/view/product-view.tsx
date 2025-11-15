@@ -46,7 +46,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
         {/* --- LEFT: รูปภาพ --- */}
-        <div className="relative border-b lg:border-b-0 lg:border-r">
+        <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto">
           <Image
             src={data.image?.url || "/placeholder.png"}
             alt={data.name}
@@ -154,10 +154,10 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
           <div className="mx-6 border-b"></div>
 
-          <div className="p-6">
+          <div className="m-6 p-6 border rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
             <div className="flex items-center gap-x-2 font-medium mb-4">
-              <StarIcon className="size-5 fill-yellow-400 text-yellow-400" />
+              <StarIcon className="size-5 fill-black text-black" />
               <p className="text-xl">{data.reviewRating.toFixed(1)}</p>
               <p className="text-sm text-muted-foreground">
                 Based on {data.reviewCount} reviews

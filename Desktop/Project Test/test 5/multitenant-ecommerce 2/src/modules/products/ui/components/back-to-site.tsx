@@ -8,8 +8,10 @@ export const BackToSite = () => {
     <div className="nav-group">
       <Link 
         href={appUrl} 
-        target="_blank" // เปิดแท็บใหม่ (ถ้าต้องการเปิดหน้าเดิมให้ลบคำสั่งนี้ออก)
+        target="_blank"
+        rel="noopener noreferrer" 
         className="nav-link"
+        aria-label="Back to Website (opens in new tab)"
         style={{ 
             display: 'flex', 
             alignItems: 'center', 
