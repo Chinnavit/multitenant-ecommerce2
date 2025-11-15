@@ -16,7 +16,7 @@ export const Products: CollectionConfig = {
     delete: ({ req }) => isSuperAdmin(req.user),
   },
   admin: {
-    useAsTitle: "name",
+    defaultColumns: ["name", "image", "price", "category", "updatedAt"],
     description: "You must verify your account before creating products",
   },
   fields: [

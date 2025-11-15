@@ -33,7 +33,9 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
-      beforeNavLinks: ["@/components/stripe-verify#StripeVerify"],
+      beforeNavLinks: [
+        "@/components/stripe-verify#StripeVerify",
+      ],
     },
   },
   collections: [
@@ -50,7 +52,7 @@ export default buildConfig({
     Mats,
   ],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || (() => { throw new Error("DATABASE_URI not found") })(),
+  secret: process.env.PAYLOAD_SECRET || (() => { throw new Error("PAYLOAD_SECRET not found") })(),
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
