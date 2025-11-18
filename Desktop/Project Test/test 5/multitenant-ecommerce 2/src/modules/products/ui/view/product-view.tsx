@@ -59,7 +59,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   // ตัวเลือกพื้นฐาน (ราคาปกติ)
   const baseOption: ProductOption = {
-    name: "Standard",
+    name: "70*50 cm",
     priceModifier: 0,
     id: "standard-option",
   };
@@ -197,7 +197,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   htmlFor="product-option"
                   className="text-sm font-medium text-gray-900 mb-2 block"
                 >
-                  Select Option:
+                  Select Size:
                 </label>
                 <select
                   id="product-option"
