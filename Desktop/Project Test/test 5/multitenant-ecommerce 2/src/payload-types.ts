@@ -240,13 +240,6 @@ export interface Product {
   id: string;
   tenant?: (string | null) | Tenant;
   name: string;
-  /**
-   * Price in THB
-   */
-  price: number;
-  category?: (string | null) | Category;
-  tags?: (string | Tag)[] | null;
-  image?: (string | null) | Media;
   description?: {
     root: {
       type: string;
@@ -262,6 +255,27 @@ export interface Product {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Price in THB (This is the base price)
+   */
+  price: number;
+  /**
+   * Add product variants, like different frame sizes.
+   */
+  options?:
+    | {
+        name: string;
+        /**
+         * Enter 50 to add 50 THB, -10 to subtract 10 THB, or 0 for no price change.
+         */
+        priceModifier: number;
+        id?: string | null;
+      }[]
+    | null;
+  category?: (string | null) | Category;
+  tags?: (string | Tag)[] | null;
+  image?: (string | null) | Media;
+  cover?: (string | null) | Media;
   refundPolicy?: ('30-day' | '14-day' | '7-day' | '3-day' | '1-day' | 'no-refunds') | null;
   /**
    * Protected content only visible to customer after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Supports Markdown formatting
@@ -542,11 +556,19 @@ export interface CategoriesSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
+  description?: T;
   price?: T;
+  options?:
+    | T
+    | {
+        name?: T;
+        priceModifier?: T;
+        id?: T;
+      };
   category?: T;
   tags?: T;
   image?: T;
-  description?: T;
+  cover?: T;
   refundPolicy?: T;
   content?: T;
   isPrivate?: T;

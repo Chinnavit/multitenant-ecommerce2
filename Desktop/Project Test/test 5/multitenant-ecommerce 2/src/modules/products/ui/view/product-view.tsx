@@ -4,7 +4,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Fragment, useState } from "react";
+// (เพิ่ม/แก้ไข) import useEffect เพิ่มเข้ามา
+import { Fragment, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { CheckIcon, LinkIcon, StarIcon } from "lucide-react";
@@ -16,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "@/components/star-rating";
 import { formatCurrency, generateTenantURL } from "@/lib/utils";
+// (เพิ่ม) Import Product type
+import { Product } from "@/payload-types";
 
 const CartButton = dynamic(
   () => import("../components/cart-button").then((mod) => mod.CartButton),
@@ -34,6 +37,13 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
+// (เพิ่ม) สร้าง Type สำหรับ options
+interface ProductOption {
+  id?: string | null;
+  name: string;
+  priceModifier: number;
+}
+
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
@@ -42,10 +52,51 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [isCopied, setIsCopied] = useState(false);
 
+  // (เพิ่ม) --- เริ่มส่วน Logic คำนวณราคา ---
+  
+  // แปลง data ให้เป็น type Product เพื่อให้เรียกใช้ .options ได้ง่าย
+  const [productData] = useState<Product>(data as Product);
+
+  // ตัวเลือกพื้นฐาน (ราคาปกติ)
+  const baseOption: ProductOption = {
+    name: "Standard",
+    priceModifier: 0,
+    id: "standard-option",
+  };
+
+  // รวมตัวเลือกทั้งหมด
+  const allOptions: ProductOption[] = [
+    baseOption,
+    ...(productData.options || []),
+  ];
+
+  // State เก็บตัวเลือกที่กำลังเลือกอยู่
+  const [selectedOption, setSelectedOption] = useState<ProductOption>(
+    allOptions[0] ?? baseOption
+  );
+  
+  // State เก็บราคาสุดท้ายที่คำนวณแล้ว
+  const [calculatedPrice, setCalculatedPrice] = useState<number>(productData.price);
+
+  // คำนวณราคาใหม่ทุกครั้งที่เปลี่ยนตัวเลือก
+  useEffect(() => {
+    const newPrice = productData.price + selectedOption.priceModifier;
+    setCalculatedPrice(newPrice);
+  }, [selectedOption, productData.price]);
+
+  const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptionName = e.target.value;
+    const option = allOptions.find(opt => opt.name === selectedOptionName);
+    if (option) {
+      setSelectedOption(option);
+    }
+  };
+  // (เพิ่ม) --- จบส่วน Logic ---
+
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-        {/* --- LEFT: รูปภาพ --- */}
+        {/* --- LEFT: รูปภาพ (คงเดิม) --- */}
         <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto">
           <Image
             src={data.image?.url || "/placeholder.png"}
@@ -63,12 +114,13 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
           <div className="p-6 pb-0 flex flex-col gap-4">
             <h1 className="text-4xl font-medium">{data.name}</h1>
 
-            {/* Price & Action Row: ใช้ justify-between เพื่อดันราคาไปซ้าย ปุ่มไปขวา */}
+            {/* Price & Action Row */}
             <div className="flex items-start justify-between w-full gap-4">
               {/* Price: ซ้าย (สีดำ) */}
               <div className="flex items-center h-10">
                 <p className="text-3xl font-bold text-black">
-                  {formatCurrency(data.price)}
+                  {/* (แก้ไข) เปลี่ยนให้แสดงราคาที่คำนวณใหม่ calculatedPrice */}
+                  {formatCurrency(calculatedPrice)}
                 </p>
               </div>
 
@@ -80,6 +132,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     isPurchased={data.isPurchased}
                     productId={productId}
                     tenantSlug={tenantSlug}
+                    // เราจะเพิ่ม props สำหรับส่งราคาและขนาดในขั้นตอนที่ 5
                   />
                   <Button
                     className="size-10"
@@ -100,7 +153,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   </Button>
                 </div>
 
-                {/* Refund Policy (ชิดขวา ใต้ปุ่ม) */}
+                {/* Refund Policy */}
                 <p className="text-sm font-medium text-muted-foreground text-right">
                   {data.refundPolicy === "no-refunds"
                     ? "No refunds"
@@ -109,7 +162,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </div>
             </div>
 
-            {/* Store & Ratings */}
+            {/* Store & Ratings (คงเดิม) */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
               <Link
                 href={generateTenantURL(tenantSlug)}
@@ -136,9 +189,40 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 </span>
               </div>
             </div>
+
+            {/* --- (เพิ่ม) ส่วน Dropdown เลือกขนาด แทรกตรงนี้ตามที่ขอครับ --- */}
+            {allOptions.length > 1 && (
+              <div className="pt-4">
+                <label
+                  htmlFor="product-option"
+                  className="text-sm font-medium text-gray-900 mb-2 block"
+                >
+                  Select Option:
+                </label>
+                <select
+                  id="product-option"
+                  value={selectedOption.name}
+                  onChange={handleOptionChange}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {allOptions.map((option) => (
+                    <option key={option.id || option.name} value={option.name}>
+                      {option.name}{' '}
+                      {option.priceModifier > 0
+                        ? `(+${formatCurrency(option.priceModifier)})`
+                        : option.priceModifier < 0
+                        ? `(${formatCurrency(option.priceModifier)})`
+                        : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {/* --- (จบส่วนที่เพิ่ม) --- */}
+
           </div>
 
-          {/* ... (ส่วน Description และ Reviews เหมือนเดิม ไม่ต้องแก้) ... */}
+          {/* ส่วน Description (คงเดิม) */}
           <div className="mx-6 mt-6 border-b"></div>
 
           <div className="p-6 pt-4">
@@ -152,6 +236,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             )}
           </div>
 
+          {/* ส่วน Reviews (คงเดิม) */}
           <div className="mx-6 border-b"></div>
 
           <div className="m-6 p-6 border rounded-lg">
