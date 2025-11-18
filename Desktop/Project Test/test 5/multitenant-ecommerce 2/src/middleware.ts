@@ -13,6 +13,15 @@ export const config = {
   ],
 };
 
+/**
+ * Rewrites requests from tenant subdomains to an internal tenant path or passes through otherwise.
+ *
+ * Determines whether the request's Host header ends with the configured root domain; if so,
+ * extracts the tenant slug from the subdomain and rewrites the request to `/tenant/{tenantSlug}{originalPath}` preserving the original query and path. Otherwise, continues normal request processing.
+ *
+ * @param req - The incoming NextRequest used to read the Host header and original URL
+ * @returns A NextResponse that rewrites to the tenant path when the host matches the root domain, or a NextResponse that continues processing when it does not
+ */
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   //Extract hostname (e.g.,"sin.centralArt.com" or "admin.centralArt.com")

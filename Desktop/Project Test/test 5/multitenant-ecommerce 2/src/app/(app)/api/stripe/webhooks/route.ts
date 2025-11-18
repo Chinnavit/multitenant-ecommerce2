@@ -8,6 +8,12 @@ import { console } from "inspector";
 
 import { ExpandLineItem } from "@/modules/checkout/types";
 
+/**
+ * Handle incoming Stripe webhook POST requests and process supported event types.
+ *
+ * @param req - The incoming HTTP request containing the Stripe webhook payload and the `stripe-signature` header
+ * @returns A JSON HTTP response: 200 with `{ message: "Received" }` on successful processing; 400 with an error message if Stripe event construction/signature verification fails; 500 with `{ message: "Webhook handler failed" }` if event handling encounters an error
+ */
 export async function POST(req: Request) {
   let event: Stripe.Event;
 
