@@ -244,19 +244,6 @@ export interface Product {
    * Price in THB
    */
   price: number;
-  /**
-   * Add product variations like size or color. The first row will be the default selection.
-   */
-  sizes?:
-    | {
-        name: string;
-        /**
-         * Price relative to the base price. (0 = same as base price, 150 = base price + 150)
-         */
-        priceModifier: number;
-        id?: string | null;
-      }[]
-    | null;
   category?: (string | null) | Category;
   tags?: (string | Tag)[] | null;
   image?: (string | null) | Media;
@@ -556,13 +543,6 @@ export interface ProductsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   price?: T;
-  sizes?:
-    | T
-    | {
-        name?: T;
-        priceModifier?: T;
-        id?: T;
-      };
   category?: T;
   tags?: T;
   image?: T;

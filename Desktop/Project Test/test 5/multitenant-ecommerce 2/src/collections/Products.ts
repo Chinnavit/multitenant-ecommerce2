@@ -1,124 +1,128 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionConfig } from 'payload'
 
-import { Tenant } from "@/payload-types";
-import { isSuperAdmin } from "@/lib/access";
+import { Tenant } from '@/payload-types'
+import { isSuperAdmin } from '@/lib/access'
 
 export const Products: CollectionConfig = {
-  slug: "products",
+  slug: 'products',
   access: {
     create: ({ req }) => {
-      if (isSuperAdmin(req.user)) return true;
+      if (isSuperAdmin(req.user)) return true
 
-      const tenant = req.user?.tenants?.[0]?.tenant as Tenant;
+      const tenant = req.user?.tenants?.[0]?.tenant as Tenant
 
-      return Boolean(tenant?.stripeDetailsSubmitted);
+      return Boolean(tenant?.stripeDetailsSubmitted)
     },
     delete: ({ req }) => isSuperAdmin(req.user),
   },
   admin: {
-    defaultColumns: ["name", "image", "price", "category", "updatedAt"],
-    description: "You must verify your account before creating products",
+    useAsTitle: 'name',
+    description: 'You must verify your account before creating products',
   },
   fields: [
     {
-      name: "name",
-      type: "text",
+      name: 'name',
+      type: 'text',
       required: true,
     },
     {
-      name: "price",
-      type: "number",
+      name: 'description',
+      type: 'richText',
+    },
+    {
+      name: 'price',
+      type: 'number',
       required: true,
       admin: {
-        description: "Price in THB",
+        description: 'Price in THB (This is the base price)', // Description in English
       },
     },
 
-    // 👇👇👇 --- เพิ่ม Field นี้เข้าไปครับ --- 👇👇👇
+    // --- (THIS IS THE NEW SECTION WE ARE ADDING) ---
     {
-      name: "sizes",
-      type: "array",
-      label: "Product Sizes/Options",
-      minRows: 1, // บังคับให้มีอย่างน้อย 1 ขนาด
+      name: 'options',
+      label: 'Product Options (e.g., Size, Color)', // Description in English
+      type: 'array',
       admin: {
         description:
-          "Add product variations like size or color. The first row will be the default selection.",
+          'Add product variants, like different frame sizes.', // Description in English
       },
       fields: [
         {
-          name: "name",
-          type: "text",
-          label: "Size Name (e.g., Small, Large, 30x40cm)",
+          name: 'name',
+          label: 'Option Name (e.g., Medium, Large)', // Description in English
+          type: 'text',
           required: true,
         },
         {
-          name: "priceModifier",
-          type: "number",
-          label: "Price Modifier (e.g., 0, 150, 300)",
-          admin: {
-            description:
-              "Price relative to the base price. (0 = same as base price, 150 = base price + 150)",
-          },
+          name: 'priceModifier',
+          label: 'Price Modifier (e.g., 50, -10, or 0)', // Description in English
+          type: 'number',
           required: true,
           defaultValue: 0,
+          admin: {
+            description:
+              'Enter 50 to add 50 THB, -10 to subtract 10 THB, or 0 for no price change.', // Description in English
+          },
         },
       ],
     },
-    // 👆👆👆 --- จบส่วนที่เพิ่ม --- 👆👆👆
+    // --- (END OF THE NEW SECTION) ---
 
     {
-      name: "category",
-      type: "relationship",
-      relationTo: "categories",
+      name: 'category',
+      type: 'relationship',
+      relationTo: 'categories',
       hasMany: false,
     },
     {
-      name: "tags",
-      type: "relationship",
-      relationTo: "tags",
+      name: 'tags',
+      type: 'relationship',
+      relationTo: 'tags',
       hasMany: true,
     },
     {
-      name: "image",
-      type: "upload",
-      relationTo: "media",
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
     },
     {
-      name: "description",
-      type: "richText",
+      name: 'cover',
+      type: 'upload',
+      relationTo: 'media',
     },
     {
-      name: "refundPolicy",
-      type: "select",
-      options: ["30-day", "14-day", "7-day", "3-day", "1-day", "no-refunds"],
-      defaultValue: "30-day",
+      name: 'refundPolicy',
+      type: 'select',
+      options: ['30-day', '14-day', '7-day', '3-day', '1-day', 'no-refunds'],
+      defaultValue: '30-day',
     },
     {
-      name: "content",
-      type: "richText",
+      name: 'content',
+      type: 'richText',
       admin: {
         description:
-          "Protected content only visible to customer after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Supports Markdown formatting",
+          'Protected content only visible to customer after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Supports Markdown formatting',
       },
     },
     {
-      name: "isPrivate",
-      label: "Private",
+      name: 'isPrivate',
+      label: 'Private',
       defaultValue: false,
-      type: "checkbox",
+      type: 'checkbox',
       admin: {
         description:
-          "If checked, this product will not be shown on the public storefront",
+          'If checked, this product will not be shown on the public storefront',
       },
     },
     {
-      name: "isArchived",
-      label: "Archived",
+      name: 'isArchived',
+      label: 'Archived',
       defaultValue: false,
-      type: "checkbox",
+      type: 'checkbox',
       admin: {
-        description: "If checked, this product will be archived",
+        description: 'If checked, this product will be archived ',
       },
     },
   ],
-};
+}
