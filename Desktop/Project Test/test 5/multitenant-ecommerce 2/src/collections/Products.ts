@@ -33,6 +33,39 @@ export const Products: CollectionConfig = {
         description: "Price in THB",
       },
     },
+
+    // 👇👇👇 --- เพิ่ม Field นี้เข้าไปครับ --- 👇👇👇
+    {
+      name: "sizes",
+      type: "array",
+      label: "Product Sizes/Options",
+      minRows: 1, // บังคับให้มีอย่างน้อย 1 ขนาด
+      admin: {
+        description:
+          "Add product variations like size or color. The first row will be the default selection.",
+      },
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          label: "Size Name (e.g., Small, Large, 30x40cm)",
+          required: true,
+        },
+        {
+          name: "priceModifier",
+          type: "number",
+          label: "Price Modifier (e.g., 0, 150, 300)",
+          admin: {
+            description:
+              "Price relative to the base price. (0 = same as base price, 150 = base price + 150)",
+          },
+          required: true,
+          defaultValue: 0,
+        },
+      ],
+    },
+    // 👆👆👆 --- จบส่วนที่เพิ่ม --- 👆👆👆
+
     {
       name: "category",
       type: "relationship",
