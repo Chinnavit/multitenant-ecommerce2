@@ -20,6 +20,9 @@ import { Reviews } from "./collections/Reviews";
 import { Products } from "./collections/Products";
 import { Categories } from "./collections/Categories";
 
+import { Frames } from "./collections/Frames"; // <--- เพิ่มบรรทัดนี้
+import { Mats } from "./collections/Mats";     // <--- เพิ่มบรรทัดนี้
+
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
@@ -30,7 +33,9 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
-      beforeNavLinks: ["@/components/stripe-verify#StripeVerify"],
+      beforeNavLinks: [
+        "@/components/stripe-verify#StripeVerify",
+      ],
     },
   },
   collections: [
@@ -42,14 +47,17 @@ export default buildConfig({
     Tenants,
     Orders,
     Reviews,
+
+    Frames,
+    Mats,
   ],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || "",
+  secret: process.env.PAYLOAD_SECRET || (() => { throw new Error("PAYLOAD_SECRET not found") })(),
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },
   db: mongooseAdapter({
-    url: process.env.DATABASE_URI || "",
+    url: process.env.DATABASE_URI || (() => { throw new Error("DATABASE_URI not found") })(),
   }),
   sharp,
   plugins: [

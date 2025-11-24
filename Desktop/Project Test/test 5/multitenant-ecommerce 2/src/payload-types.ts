@@ -75,6 +75,9 @@ export interface Config {
     tenants: Tenant;
     orders: Order;
     reviews: Review;
+    frames: Frame;
+    mats: Mat;
+    'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
@@ -93,6 +96,9 @@ export interface Config {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    frames: FramesSelect<false> | FramesSelect<true>;
+    mats: MatsSelect<false> | MatsSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
@@ -238,7 +244,7 @@ export interface Product {
     root: {
       type: string;
       children: {
-        type: string;
+        type: any;
         version: number;
         [k: string]: unknown;
       }[];
@@ -250,9 +256,22 @@ export interface Product {
     [k: string]: unknown;
   } | null;
   /**
-   * Price in THB
+   * Price in THB (This is the base price)
    */
   price: number;
+  /**
+   * Add product variants, like different frame sizes.
+   */
+  options?:
+    | {
+        name: string;
+        /**
+         * Enter 50 to add 50 THB, -10 to subtract 10 THB, or 0 for no price change.
+         */
+        priceModifier: number;
+        id?: string | null;
+      }[]
+    | null;
   category?: (string | null) | Category;
   tags?: (string | Tag)[] | null;
   image?: (string | null) | Media;
@@ -265,7 +284,7 @@ export interface Product {
     root: {
       type: string;
       children: {
-        type: string;
+        type: any;
         version: number;
         [k: string]: unknown;
       }[];
@@ -332,6 +351,55 @@ export interface Review {
   createdAt: string;
 }
 /**
+ * จัดการลายกรอบรูปและราคาต่อนิ้ว (Moulding Inventory)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "frames".
+ */
+export interface Frame {
+  id: string;
+  name: string;
+  sku?: string | null;
+  image: string | Media;
+  pricePerInch: number;
+  widthInches: number;
+  material?: ('wood' | 'metal' | 'plastic') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * จัดการสีกระดาษขอบ (Mat Boards)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mats".
+ */
+export interface Mat {
+  id: string;
+  name: string;
+  colorCode: string;
+  price?: number | null;
+  texture?: (string | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv".
+ */
+export interface PayloadKv {
+  id: string;
+  key: string;
+  data:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
@@ -369,6 +437,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'frames';
+        value: string | Frame;
+      } | null)
+    | ({
+        relationTo: 'mats';
+        value: string | Mat;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -482,6 +558,13 @@ export interface ProductsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   price?: T;
+  options?:
+    | T
+    | {
+        name?: T;
+        priceModifier?: T;
+        id?: T;
+      };
   category?: T;
   tags?: T;
   image?: T;
@@ -540,6 +623,40 @@ export interface ReviewsSelect<T extends boolean = true> {
   user?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "frames_select".
+ */
+export interface FramesSelect<T extends boolean = true> {
+  name?: T;
+  sku?: T;
+  image?: T;
+  pricePerInch?: T;
+  widthInches?: T;
+  material?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mats_select".
+ */
+export interface MatsSelect<T extends boolean = true> {
+  name?: T;
+  colorCode?: T;
+  price?: T;
+  texture?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-kv_select".
+ */
+export interface PayloadKvSelect<T extends boolean = true> {
+  key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

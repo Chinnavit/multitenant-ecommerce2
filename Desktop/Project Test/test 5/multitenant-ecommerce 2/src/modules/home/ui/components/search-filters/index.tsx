@@ -12,10 +12,6 @@ import { BreadcrumbNavigation } from "./breadcrumb-navigation";
 import { DEFAULT_BG_COLOR } from "../../../constants";
 
 
-interface Props {
-  data:any
-};
-
 export const SearchFilters = () => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.categories.getMany.queryOptions());

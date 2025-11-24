@@ -4,7 +4,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Fragment, useState } from "react";
+// (เพิ่ม/แก้ไข) import useEffect เพิ่มเข้ามา
+import { Fragment, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { CheckIcon, LinkIcon, StarIcon } from "lucide-react";
@@ -16,15 +17,19 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "@/components/star-rating";
 import { formatCurrency, generateTenantURL } from "@/lib/utils";
+// (เพิ่ม) Import Product type
+import { Product } from "@/payload-types";
 
 const CartButton = dynamic(
-  () => import("../components/cart-button").then(
-    (mod) => mod.CartButton,
-  ),
+  () => import("../components/cart-button").then((mod) => mod.CartButton),
   {
-    ssr:false,
-    loading: () => <Button disabled className="flex-1 bg-pink-400">Add to cart</Button>
-  },
+    ssr: false,
+    loading: () => (
+      <Button disabled className="flex-1 bg-pink-400">
+        Add to cart
+      </Button>
+    ),
+  }
 );
 
 interface ProductViewProps {
@@ -32,146 +37,231 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
+// (เพิ่ม) สร้าง Type สำหรับ options
+interface ProductOption {
+  id?: string | null;
+  name: string;
+  priceModifier: number;
+}
+
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
-  const { data } = useSuspenseQuery(trpc.products.getOne.queryOptions({ id: productId }));
+  const { data } = useSuspenseQuery(
+    trpc.products.getOne.queryOptions({ id: productId })
+  );
 
   const [isCopied, setIsCopied] = useState(false);
 
+  // (เพิ่ม) --- เริ่มส่วน Logic คำนวณราคา ---
+  
+  // แปลง data ให้เป็น type Product เพื่อให้เรียกใช้ .options ได้ง่าย
+  const [productData] = useState<Product>(data as Product);
+
+  // ตัวเลือกพื้นฐาน (ราคาปกติ)
+  const baseOption: ProductOption = {
+    name: "Standard",
+    priceModifier: 0,
+    id: "standard-option",
+  };
+
+  // รวมตัวเลือกทั้งหมด
+  const allOptions: ProductOption[] = [
+    baseOption,
+    ...(productData.options || []),
+  ];
+
+  // State เก็บตัวเลือกที่กำลังเลือกอยู่
+  const [selectedOption, setSelectedOption] = useState<ProductOption>(
+    allOptions[0] ?? baseOption
+  );
+  
+  // State เก็บราคาสุดท้ายที่คำนวณแล้ว
+  const [calculatedPrice, setCalculatedPrice] = useState<number>(productData.price);
+
+  // คำนวณราคาใหม่ทุกครั้งที่เปลี่ยนตัวเลือก
+  useEffect(() => {
+    const newPrice = productData.price + selectedOption.priceModifier;
+    setCalculatedPrice(newPrice);
+  }, [selectedOption, productData.price]);
+
+  const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptionName = e.target.value;
+    const option = allOptions.find(opt => opt.name === selectedOptionName);
+    if (option) {
+      setSelectedOption(option);
+    }
+  };
+  // (เพิ่ม) --- จบส่วน Logic ---
+
   return (
     <div className="px-4 lg:px-12 py-10">
-      <div className="border rounded-sm bg-white overflow-hidden">
-        <div className="relative aspect-[3.9] border-b">
+      <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+        {/* --- LEFT: รูปภาพ (คงเดิม) --- */}
+        <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto">
           <Image
             src={data.image?.url || "/placeholder.png"}
             alt={data.name}
-            fill
-            className="object-cover"
+            width={0}
+            height={0}
+            sizes="100vw"
+            style={{ width: "100%", height: "auto" }}
           />
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-6">
-          <div className="col-span-4">
-            <div className="p-6">
-              <h1 className="text-4xl font-medium">{data.name}</h1>
-            </div>
-            <div className="border-y flex">
-              <div className="px-6 py-4 flex items-center justify-center border-r">
-                <div className="px-2 py-1 border bg-pink-400 w-fit">
-                  <p className="text-base font-medium">{formatCurrency(data.price)}</p>
-                </div>
+
+        {/* --- RIGHT: เนื้อหา --- */}
+        <div className="flex flex-col h-full">
+          {/* Header Group */}
+          <div className="p-6 pb-0 flex flex-col gap-4">
+            <h1 className="text-4xl font-medium">{data.name}</h1>
+
+            {/* Price & Action Row */}
+            <div className="flex items-start justify-between w-full gap-4">
+              {/* Price: ซ้าย (สีดำ) */}
+              <div className="flex items-center h-10">
+                <p className="text-3xl font-bold text-black">
+                  {/* (แก้ไข) เปลี่ยนให้แสดงราคาที่คำนวณใหม่ calculatedPrice */}
+                  {formatCurrency(calculatedPrice)}
+                </p>
               </div>
 
-              <div className="px-6 py-4 flex items-center justify-center lg:border-r">
-                <Link href={generateTenantURL(tenantSlug)} className="flex items-center gap-2">
-                  {data.tenant.image?.url && (
-                    <Image
-                      src={data.tenant.image.url}
-                      alt={data.tenant.name}
-                      width={20}
-                      height={20}
-                      className="rounded-full border shrink-0 size-[20px]"
-                    />
-                  )}
-                  <p className="text-base underline font-medium">
-                    {data.tenant.name}
-                  </p>
-                </Link>
-              </div>
-
-              <div className="hidden lg:flex px-6 py-4 items-center justify-center">
+              {/* Actions Group: ขวา (ปุ่ม + Refund text) */}
+              <div className="flex flex-col items-end gap-2">
+                {/* Buttons */}
                 <div className="flex items-center gap-2">
-                  <StarRating 
-                    rating={data.reviewRating} 
-                    iconClassName="size-4" 
-                />
-                <p className="text-base font-medium">
-                  {data.reviewCount} ratings
-                </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="block lg:hidden px-6 py-4 items-center justify-center border-b">
-              <div className="flex items-center gap-2">
-                <StarRating 
-                  rating={data.reviewRating} 
-                  iconClassName="size-4"
-                />
-                <p className="text-base font-medium">
-                  {data.reviewCount} ratings
-                </p>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {data.description ? (
-                <RichText data={data.description} />
-              ) : (
-                <p className="font-medium text-muted-foreground italic">
-                  No description provided
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="col-span-2">
-            <div className="border-t lg:border-t-0 lg:border-l h-full">
-              <div className="flex flex-col gap-4 p-6 border-b">
-                <div className="flex flex-row items-center gap-2">
                   <CartButton
                     isPurchased={data.isPurchased}
                     productId={productId}
                     tenantSlug={tenantSlug}
+                    // เราจะเพิ่ม props สำหรับส่งราคาและขนาดในขั้นตอนที่ 5
                   />
                   <Button
-                    className="size-12"
+                    className="size-10"
                     variant="elevated"
                     onClick={() => {
                       setIsCopied(true);
                       navigator.clipboard.writeText(window.location.href);
                       toast.success("URL copied to clipboard");
-
-                      setTimeout(() => {
-                        setIsCopied(false);
-                      }, 1000);
+                      setTimeout(() => setIsCopied(false), 1000);
                     }}
                     disabled={isCopied}
                   >
-                    {isCopied ? <CheckIcon/> : <LinkIcon />}
+                    {isCopied ? (
+                      <CheckIcon className="size-4" />
+                    ) : (
+                      <LinkIcon className="size-4" />
+                    )}
                   </Button>
                 </div>
 
-                <p className="text-center font-medium">
+                {/* Refund Policy */}
+                <p className="text-sm font-medium text-muted-foreground text-right">
                   {data.refundPolicy === "no-refunds"
                     ? "No refunds"
                     : `${data.refundPolicy} money back guarantee`}
                 </p>
               </div>
+            </div>
 
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-medium">Ratings</h3>
-                  <div className="flex items-center gap-x-1 font-medium">
-                    <StarIcon className="size-4 fill-black" />
-                    <p>({data.reviewRating})</p>
-                    <p className="text-base">{data.reviewCount} rating</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-[auto_1fr_auto] gap-3 mt-4">
-                  {[5, 4, 3, 2, 1].map((stars) => (
-                    <Fragment key={stars}>
-                      <div className="font-medium">{stars} {stars === 1 ? "star" : "stars"}</div>
-                      <Progress 
-                        value={data.ratingDistribution[stars]} 
-                        className="h-[1lh]" 
-                        />
-                        <div className="font-medium">
-                            {data.ratingDistribution[stars]}%
-                        </div>
-                    </Fragment>
-                  ))}
-                </div>
+            {/* Store & Ratings (คงเดิม) */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
+              <Link
+                href={generateTenantURL(tenantSlug)}
+                className="flex items-center gap-2 hover:opacity-80 transition"
+              >
+                {data.tenant.image?.url && (
+                  <Image
+                    src={data.tenant.image.url}
+                    alt={data.tenant.name}
+                    width={24}
+                    height={24}
+                    className="rounded-full border shrink-0 size-6"
+                  />
+                )}
+                <span className="underline font-medium text-black">
+                  {data.tenant.name}
+                </span>
+              </Link>
+              <div className="w-px h-4 bg-gray-300 hidden sm:block"></div>
+              <div className="flex items-center gap-3">
+                <StarRating rating={data.reviewRating} iconClassName="size-4" />
+                <span className="font-medium text-black">
+                  {data.reviewCount} ratings
+                </span>
               </div>
+            </div>
+
+            {/* --- (เพิ่ม) ส่วน Dropdown เลือกขนาด แทรกตรงนี้ตามที่ขอครับ --- */}
+            {allOptions.length > 1 && (
+              <div className="pt-4">
+                <label
+                  htmlFor="product-option"
+                  className="text-sm font-medium text-gray-900 mb-2 block"
+                >
+                  Select Option:
+                </label>
+                <select
+                  id="product-option"
+                  value={selectedOption.name}
+                  onChange={handleOptionChange}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  {allOptions.map((option) => (
+                    <option key={option.id || option.name} value={option.name}>
+                      {option.name}{' '}
+                      {option.priceModifier > 0
+                        ? `(+${formatCurrency(option.priceModifier)})`
+                        : option.priceModifier < 0
+                        ? `(${formatCurrency(option.priceModifier)})`
+                        : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {/* --- (จบส่วนที่เพิ่ม) --- */}
+
+          </div>
+
+          {/* ส่วน Description (คงเดิม) */}
+          <div className="mx-6 mt-6 border-b"></div>
+
+          <div className="p-6 pt-4">
+            <h3 className="text-lg font-semibold mb-2">Description</h3>
+            {data.description ? (
+              <RichText data={data.description} />
+            ) : (
+              <p className="font-medium text-muted-foreground italic">
+                No description provided
+              </p>
+            )}
+          </div>
+
+          {/* ส่วน Reviews (คงเดิม) */}
+          <div className="mx-6 border-b"></div>
+
+          <div className="m-6 p-6 border rounded-lg">
+            <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
+            <div className="flex items-center gap-x-2 font-medium mb-4">
+              <StarIcon className="size-5 fill-black text-black" />
+              <p className="text-xl">{data.reviewRating.toFixed(1)}</p>
+              <p className="text-sm text-muted-foreground">
+                Based on {data.reviewCount} reviews
+              </p>
+            </div>
+
+            <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center">
+              {[5, 4, 3, 2, 1].map((stars) => (
+                <Fragment key={stars}>
+                  <div className="font-medium text-sm w-12">{stars} star</div>
+                  <Progress
+                    value={data.ratingDistribution[stars]}
+                    className="h-2"
+                  />
+                  <div className="font-medium text-sm w-10 text-right">
+                    {data.ratingDistribution[stars]}%
+                  </div>
+                </Fragment>
+              ))}
             </div>
           </div>
         </div>
@@ -182,17 +272,18 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
 export const ProductViewSkeleton = () => {
   return (
-  <div className="px-4 lg:px-12 py-10">
-      <div className="border rounded-sm bg-white overflow-hidden">
-        <div className="relative aspect-[3.9] border-b">
+    <div className="px-4 lg:px-12 py-10">
+      <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
+        <div className="relative min-h-[500px] lg:h-full border-b lg:border-b-0 lg:border-r">
           <Image
             src={"/placeholder.png"}
             alt="Placeholder"
             fill
-            className="object-cover"
+            className="object-cover object-top"
           />
         </div>
+        <div className="h-96 bg-gray-50/50"></div>
       </div>
-  </div>
-  )
-}
+    </div>
+  );
+};
