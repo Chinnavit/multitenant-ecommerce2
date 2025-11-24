@@ -4,7 +4,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Fragment, useState, useEffect } from "react"; 
+// (เพิ่ม/แก้ไข) import useEffect เพิ่มเข้ามา
+import { Fragment, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import { CheckIcon, LinkIcon, StarIcon } from "lucide-react";
@@ -16,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "@/components/star-rating";
 import { formatCurrency, generateTenantURL } from "@/lib/utils";
-import { Product } from "@/payload-types"; 
+// (เพิ่ม) Import Product type
+import { Product } from "@/payload-types";
 
 const CartButton = dynamic(
   () => import("../components/cart-button").then((mod) => mod.CartButton),
@@ -35,6 +37,7 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
+// (เพิ่ม) สร้าง Type สำหรับ options
 interface ProductOption {
   id?: string | null;
   name: string;
@@ -49,23 +52,33 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [isCopied, setIsCopied] = useState(false);
 
-  // Logic คำนวณราคา
+  // (เพิ่ม) --- เริ่มส่วน Logic คำนวณราคา ---
+  
+  // แปลง data ให้เป็น type Product เพื่อให้เรียกใช้ .options ได้ง่าย
   const [productData] = useState<Product>(data as Product);
 
+  // ตัวเลือกพื้นฐาน (ราคาปกติ)
   const baseOption: ProductOption = {
     name: "Standard",
     priceModifier: 0,
     id: "standard-option",
   };
 
+  // รวมตัวเลือกทั้งหมด
   const allOptions: ProductOption[] = [
     baseOption,
     ...(productData.options || []),
   ];
 
-  const [selectedOption, setSelectedOption] = useState<ProductOption>(allOptions[0]!);
+  // State เก็บตัวเลือกที่กำลังเลือกอยู่
+  const [selectedOption, setSelectedOption] = useState<ProductOption>(
+    allOptions[0] ?? baseOption
+  );
+  
+  // State เก็บราคาสุดท้ายที่คำนวณแล้ว
   const [calculatedPrice, setCalculatedPrice] = useState<number>(productData.price);
 
+  // คำนวณราคาใหม่ทุกครั้งที่เปลี่ยนตัวเลือก
   useEffect(() => {
     const newPrice = productData.price + selectedOption.priceModifier;
     setCalculatedPrice(newPrice);
@@ -78,11 +91,12 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
       setSelectedOption(option);
     }
   };
+  // (เพิ่ม) --- จบส่วน Logic ---
 
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-        {/* --- LEFT: รูปภาพ --- */}
+        {/* --- LEFT: รูปภาพ (คงเดิม) --- */}
         <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto">
           <Image
             src={data.image?.url || "/placeholder.png"}
@@ -102,24 +116,23 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
             {/* Price & Action Row */}
             <div className="flex items-start justify-between w-full gap-4">
-              {/* Price */}
+              {/* Price: ซ้าย (สีดำ) */}
               <div className="flex items-center h-10">
                 <p className="text-3xl font-bold text-black">
+                  {/* (แก้ไข) เปลี่ยนให้แสดงราคาที่คำนวณใหม่ calculatedPrice */}
                   {formatCurrency(calculatedPrice)}
                 </p>
               </div>
 
-              {/* Actions Group */}
+              {/* Actions Group: ขวา (ปุ่ม + Refund text) */}
               <div className="flex flex-col items-end gap-2">
                 {/* Buttons */}
                 <div className="flex items-center gap-2">
                   <CartButton
                     isPurchased={data.isPurchased}
+                    productId={productId}
                     tenantSlug={tenantSlug}
-                    // (แก้ไข) ส่งข้อมูลครบถ้วนไปที่ปุ่มแล้ว!
-                    product={productData}
-                    selectedOption={selectedOption}
-                    finalPrice={calculatedPrice} 
+                    // เราจะเพิ่ม props สำหรับส่งราคาและขนาดในขั้นตอนที่ 5
                   />
                   <Button
                     className="size-10"
@@ -142,14 +155,14 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
                 {/* Refund Policy */}
                 <p className="text-sm font-medium text-muted-foreground text-right">
-                  {productData.refundPolicy === "no-refunds"
+                  {data.refundPolicy === "no-refunds"
                     ? "No refunds"
-                    : `${productData.refundPolicy} money back guarantee`}
+                    : `${data.refundPolicy} money back guarantee`}
                 </p>
               </div>
             </div>
 
-            {/* Store & Ratings */}
+            {/* Store & Ratings (คงเดิม) */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
               <Link
                 href={generateTenantURL(tenantSlug)}
@@ -177,7 +190,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </div>
             </div>
 
-            {/* Dropdown เลือกขนาด */}
+            {/* --- (เพิ่ม) ส่วน Dropdown เลือกขนาด แทรกตรงนี้ตามที่ขอครับ --- */}
             {allOptions.length > 1 && (
               <div className="pt-4">
                 <label
@@ -205,15 +218,17 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 </select>
               </div>
             )}
+            {/* --- (จบส่วนที่เพิ่ม) --- */}
 
           </div>
 
-          {/* Description & Reviews */}
+          {/* ส่วน Description (คงเดิม) */}
           <div className="mx-6 mt-6 border-b"></div>
+
           <div className="p-6 pt-4">
             <h3 className="text-lg font-semibold mb-2">Description</h3>
-            {productData.description ? (
-              <RichText data={productData.description} />
+            {data.description ? (
+              <RichText data={data.description} />
             ) : (
               <p className="font-medium text-muted-foreground italic">
                 No description provided
@@ -221,6 +236,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             )}
           </div>
 
+          {/* ส่วน Reviews (คงเดิม) */}
           <div className="mx-6 border-b"></div>
 
           <div className="m-6 p-6 border rounded-lg">
