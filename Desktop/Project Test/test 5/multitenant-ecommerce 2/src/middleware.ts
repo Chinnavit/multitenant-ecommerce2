@@ -13,6 +13,12 @@ export const config = {
   ],
 };
 
+/**
+ * Rewrites requests for tenant subdomains to the corresponding /tenant/{slug} path or allows normal processing otherwise.
+ *
+ * @param req - The incoming NextRequest; its Host header and URL pathname are inspected to determine tenant routing.
+ * @returns A NextResponse that rewrites to `/tenant/{tenantSlug}{originalPath}` when the request hostname ends with the configured root domain, `NextResponse.next()` otherwise.
+ */
 export default async function middleware(req: NextRequest) {
   const url = req.nextUrl;
   //Extract hostname (e.g.,"sin.centralArt.com" or "admin.centralArt.com")

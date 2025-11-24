@@ -8,6 +8,15 @@ import { console } from "inspector";
 
 import { ExpandLineItem } from "@/modules/checkout/types";
 
+/**
+ * Handle Stripe webhook POST requests by verifying the signature and processing permitted event types to update application data.
+ *
+ * Verifies the incoming request using the Stripe webhook secret, ignores events that are not permitted, and for permitted events:
+ * - Creates order records for `checkout.session.completed` using expanded line item product data and user metadata.
+ * - Updates tenant `stripeDetailsSubmitted` for `account.updated`.
+ *
+ * @returns A Next.js JSON response. Returns HTTP 200 with `{ message: "Received" }` for successful or ignored events, HTTP 400 with `{ message: "Webhook Error: <message>" }` when webhook signature verification fails, and HTTP 500 with `{ message: "Webhook handler failed" }` when processing a permitted event fails.
+ */
 export async function POST(req: Request) {
   let event: Stripe.Event;
 
