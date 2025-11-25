@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Fragment, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
-import { CheckIcon, LinkIcon, StarIcon } from "lucide-react";
+import { CheckIcon, LinkIcon, StarIcon, Check } from "lucide-react"; 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 
@@ -13,9 +13,10 @@ import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "@/components/star-rating";
-import { Switch } from "@/components/ui/switch"; // (เพิ่ม) Import Switch
-import { Label } from "@/components/ui/label";   // (เพิ่ม) Import Label
-import { formatCurrency, generateTenantURL } from "@/lib/utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+// รวม import จาก utils ไว้ด้วยกัน
+import { formatCurrency, generateTenantURL, cn } from "@/lib/utils"; 
 
 const CartButton = dynamic(
   () => import("../components/cart-button").then((mod) => mod.CartButton),
@@ -34,6 +35,15 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
+// --- กำหนดค่าสี Mat 3 สี ---
+const MAT_COLORS = [
+  { id: "black", name: "Black", hex: "#000000", border: "border-black" },
+  { id: "gray", name: "Gray", hex: "#808080", border: "border-gray-400" },
+  { id: "navy", name: "Navy", hex: "#000080", border: "border-blue-900" },
+  { id: "white", name: "White", hex: "#FFFFFF", border: "border-gray-200" },
+  { id: "cream", name: "Cream", hex: "#F5F5DC", border: "border-amber-100" },
+];
+
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
@@ -42,29 +52,21 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [isCopied, setIsCopied] = useState(false);
 
-  // --- Logic คำนวณราคา (Custom Size + Mat) ---
-  
-  // 1. State ขนาด (หน่วยนิ้ว)
+  // --- Logic State ---
   const [width, setWidth] = useState<number>(8);
   const [height, setHeight] = useState<number>(10);
-  
-  // 2. State ตัวเลือก Mat (มี/ไม่มี)
-  const [hasMat, setHasMat] = useState<boolean>(false); // Default: ไม่ใส่
-
-  // 3. State ราคาสุดท้าย
+  const [hasMat, setHasMat] = useState<boolean>(false);
+  const [matColor, setMatColor] = useState<string>("white"); // เก็บสีที่เลือก (Default: White)
+   
   const [calculatedPrice, setCalculatedPrice] = useState<number>(data.price);
 
   useEffect(() => {
     const area = width * height;
-    
-    // --- กำหนดราคาตรงนี้ ---
-    const framePricePerSqIn = 0.5; // ราคาค่ากรอบ (ต่อตารางนิ้ว)
-    const matPricePerSqIn = 0.2;   // ราคาค่า Mat (ต่อตารางนิ้ว) - ปรับแก้ได้ตามจริง
-    // ----------------------
+    const framePricePerSqIn = 0.5; 
+    const matPricePerSqIn = 0.2;    
 
     let surcharge = area * framePricePerSqIn;
 
-    // ถ้าเลือกใส่ Mat ให้บวกราคาเพิ่ม
     if (hasMat) {
       surcharge += area * matPricePerSqIn;
     }
@@ -77,14 +79,18 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     e: React.ChangeEvent<HTMLInputElement>,
     setter: (val: number) => void
   ) => {
-    let val = parseFloat(e.target.value);
-    if (val > 40) val = 40; // Max limit
+    const inputValue = e.target.value;
+    if (inputValue === "") {
+      setter(0);
+      return;
+    }
+    let val = parseFloat(inputValue);
+    if (val > 40) val = 40; 
     if (!isNaN(val)) setter(val);
-    else setter(0);
   };
 
   const handleBlur = (val: number, setter: (val: number) => void) => {
-    if (val < 4) setter(4); // Min limit
+    if (val < 4) setter(4);
   };
 
   return (
@@ -121,7 +127,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     isPurchased={data.isPurchased}
                     productId={productId}
                     tenantSlug={tenantSlug}
-                    // TODO: ส่ง width, height, hasMat ไปยัง Cart
+                    // TODO: ในขั้นตอนต่อไป เราจะต้องส่งค่า width, height, hasMat, matColor เข้าไปใน CartButton
                   />
                   <Button
                     className="size-10"
@@ -160,16 +166,19 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
             {/* --- Customization Section --- */}
             <div className="pt-6 space-y-6">
-              
+               
               {/* 1. Size Selection */}
               <div>
                 <label className="text-sm font-medium text-gray-900 mb-2 block">
-                  Custom Size (4" - 40"):
+                  Custom Size (4&quot; - 40&quot;):
                 </label>
                 <div className="flex gap-4 items-end">
                   <div className="flex-1">
-                    <span className="text-xs text-muted-foreground mb-1 block">Width (in)</span>
+                    {/* แก้ไข: เปลี่ยน span เป็น label และเพิ่ม htmlFor */}
+                    <label htmlFor="width-input" className="text-xs text-muted-foreground mb-1 block">Width (in)</label>
                     <input
+                      id="width-input" // แก้ไข: เพิ่ม ID
+                      placeholder="8" // แก้ไข: เพิ่ม Placeholder
                       type="number"
                       value={width === 0 ? '' : width}
                       onChange={(e) => handleDimensionChange(e, setWidth)}
@@ -180,8 +189,11 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   </div>
                   <div className="pb-2 text-muted-foreground font-medium">x</div>
                   <div className="flex-1">
-                    <span className="text-xs text-muted-foreground mb-1 block">Height (in)</span>
+                     {/* แก้ไข: เปลี่ยน span เป็น label และเพิ่ม htmlFor */}
+                    <label htmlFor="height-input" className="text-xs text-muted-foreground mb-1 block">Height (in)</label>
                     <input
+                      id="height-input" // แก้ไข: เพิ่ม ID
+                      placeholder="10" // แก้ไข: เพิ่ม Placeholder
                       type="number"
                       value={height === 0 ? '' : height}
                       onChange={(e) => handleDimensionChange(e, setHeight)}
@@ -193,29 +205,69 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 </div>
               </div>
 
-              {/* 2. Mat Selection (เพิ่มใหม่) */}
-              <div className="flex items-center justify-between border p-4 rounded-md bg-gray-50">
-                <div className="space-y-0.5">
-                  <Label htmlFor="mat-switch" className="text-base font-medium text-black">
-                    Add Mat Board
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Adds a decorative border around your art.
-                  </p>
+              {/* 2. Mat Selection */}
+              <div className="flex flex-col gap-4 border p-4 rounded-md bg-gray-50/50">
+                {/* Switch Row */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="mat-switch" className="text-base font-medium text-black">
+                      Add Mat Board
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Adds a decorative border.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      {hasMat && (
+                          <span className="text-sm font-medium text-green-600">
+                              + {formatCurrency(width * height * 0.2)}
+                          </span>
+                      )}
+                      <Switch
+                          id="mat-switch"
+                          checked={hasMat}
+                          onCheckedChange={setHasMat}
+                      />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    {/* แสดงราคาบวกเพิ่มถ้าเปิด Switch */}
-                    {hasMat && (
-                        <span className="text-sm font-medium text-green-600">
-                            + {formatCurrency(width * height * 0.2)}
-                        </span>
-                    )}
-                    <Switch
-                        id="mat-switch"
-                        checked={hasMat}
-                        onCheckedChange={setHasMat}
-                    />
-                </div>
+
+                {/* (NEW) Color Selection - Show ONLY if hasMat is true */}
+                {hasMat && (
+                  <div className="pt-2 border-t mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <span className="text-xs text-muted-foreground mb-3 block font-medium uppercase tracking-wider">
+                        Select Mat Color
+                      </span>
+                      <div className="flex gap-3">
+                        {MAT_COLORS.map((color) => (
+                          <button
+                            key={color.id}
+                            onClick={() => setMatColor(color.id)}
+                            className={cn(
+                              "group relative size-10 rounded-full border-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all",
+                              color.border,
+                              matColor === color.id ? "ring-2 ring-offset-2 ring-black border-transparent scale-110" : "hover:scale-105"
+                            )}
+                            style={{ backgroundColor: color.hex }}
+                            title={color.name}
+                          >
+                            {/* Checkmark Icon if selected */}
+                            {matColor === color.id && (
+                              <span className="absolute inset-0 flex items-center justify-center">
+                                <Check className={cn(
+                                  "size-5",
+                                  color.id === "black" ? "text-white" : "text-black"
+                                )} />
+                              </span>
+                            )}
+                            <span className="sr-only">{color.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Selected: <span className="font-medium text-black">{MAT_COLORS.find(c => c.id === matColor)?.name}</span>
+                      </p>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -225,7 +277,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
           <div className="mx-6 mt-6 border-b"></div>
 
-          {/* Description */}
           <div className="p-6 pt-4">
             <h3 className="text-lg font-semibold mb-2">Description</h3>
             {data.description ? <RichText data={data.description} /> : <p className="text-muted-foreground italic">No description provided</p>}
@@ -233,7 +284,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
           <div className="mx-6 border-b"></div>
 
-          {/* Reviews */}
           <div className="m-6 p-6 border rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
             <div className="flex items-center gap-x-2 font-medium mb-4">
