@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-// 1. import ส่วนนี้เข้ามา
-import { GoogleAnalytics } from '@next/third-parties/google'; 
 
 import { TRPCReactProvider } from "@/trpc/client";
 import { Toaster } from "@/components/ui/sonner";
@@ -34,9 +32,6 @@ export default function RootLayout({
           <Toaster/>
         </TRPCReactProvider>
         </NuqsAdapter>
-        
-        {/* 2. วาง Component ไว้ตรงนี้ (เปลี่ยน GA_MEASUREMENT_ID เป็น ID ของคุณ) */}
-        <GoogleAnalytics gaId="G-6YG5QM4WK2" /> 
       </body>
     </html>
   );

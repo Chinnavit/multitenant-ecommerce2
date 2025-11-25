@@ -259,19 +259,6 @@ export interface Product {
    * Price in THB (This is the base price)
    */
   price: number;
-  /**
-   * Add product variants, like different frame sizes.
-   */
-  options?:
-    | {
-        name: string;
-        /**
-         * Enter 50 to add 50 THB, -10 to subtract 10 THB, or 0 for no price change.
-         */
-        priceModifier: number;
-        id?: string | null;
-      }[]
-    | null;
   category?: (string | null) | Category;
   tags?: (string | Tag)[] | null;
   image?: (string | null) | Media;
@@ -558,13 +545,6 @@ export interface ProductsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   price?: T;
-  options?:
-    | T
-    | {
-        name?: T;
-        priceModifier?: T;
-        id?: T;
-      };
   category?: T;
   tags?: T;
   image?: T;

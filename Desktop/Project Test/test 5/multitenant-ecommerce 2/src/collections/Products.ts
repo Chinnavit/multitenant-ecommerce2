@@ -37,38 +37,6 @@ export const Products: CollectionConfig = {
         description: 'Price in THB (This is the base price)', // Description in English
       },
     },
-
-    // --- (THIS IS THE NEW SECTION WE ARE ADDING) ---
-    {
-      name: 'options',
-      label: 'Product Options (e.g., Size, Color)', // Description in English
-      type: 'array',
-      admin: {
-        description:
-          'Add product variants, like different frame sizes.', // Description in English
-      },
-      fields: [
-        {
-          name: 'name',
-          label: 'Option Name (e.g., Medium, Large)', // Description in English
-          type: 'text',
-          required: true,
-        },
-        {
-          name: 'priceModifier',
-          label: 'Price Modifier (e.g., 50, -10, or 0)', // Description in English
-          type: 'number',
-          required: true,
-          defaultValue: 0,
-          admin: {
-            description:
-              'Enter 50 to add 50 THB, -10 to subtract 10 THB, or 0 for no price change.', // Description in English
-          },
-        },
-      ],
-    },
-    // --- (END OF THE NEW SECTION) ---
-
     {
       name: 'category',
       type: 'relationship',
