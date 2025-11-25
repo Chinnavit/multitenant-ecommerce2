@@ -4,7 +4,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-// (เพิ่ม/แก้ไข) import useEffect เพิ่มเข้ามา
 import { Fragment, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
@@ -17,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "@/components/star-rating";
 import { formatCurrency, generateTenantURL } from "@/lib/utils";
-// (เพิ่ม) Import Product type
 import { Product } from "@/payload-types";
 
 const CartButton = dynamic(
@@ -37,13 +35,6 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
-// (เพิ่ม) สร้าง Type สำหรับ options
-interface ProductOption {
-  id?: string | null;
-  name: string;
-  priceModifier: number;
-}
-
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
@@ -52,51 +43,59 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [isCopied, setIsCopied] = useState(false);
 
-  // (เพิ่ม) --- เริ่มส่วน Logic คำนวณราคา ---
+  // (แก้ไข) --- เริ่มส่วน Logic Custom Size (หน่วย in, 4-40) ---
   
-  // แปลง data ให้เป็น type Product เพื่อให้เรียกใช้ .options ได้ง่าย
-  const [productData] = useState<Product>(data as Product);
-
-  // ตัวเลือกพื้นฐาน (ราคาปกติ)
-  const baseOption: ProductOption = {
-    name: "Standard",
-    priceModifier: 0,
-    id: "standard-option",
-  };
-
-  // รวมตัวเลือกทั้งหมด
-  const allOptions: ProductOption[] = [
-    baseOption,
-    ...(productData.options || []),
-  ];
-
-  // State เก็บตัวเลือกที่กำลังเลือกอยู่
-  const [selectedOption, setSelectedOption] = useState<ProductOption>(
-    allOptions[0] ?? baseOption
-  );
+  // กำหนดขนาดเริ่มต้น (เช่น 8x10 นิ้ว)
+  const [width, setWidth] = useState<number>(8);
+  const [height, setHeight] = useState<number>(10);
   
   // State เก็บราคาสุดท้ายที่คำนวณแล้ว
-  const [calculatedPrice, setCalculatedPrice] = useState<number>(productData.price);
+  const [calculatedPrice, setCalculatedPrice] = useState<number>(data.price);
 
-  // คำนวณราคาใหม่ทุกครั้งที่เปลี่ยนตัวเลือก
+  // คำนวณราคาใหม่ทุกครั้งที่ขนาดเปลี่ยน
   useEffect(() => {
-    const newPrice = productData.price + selectedOption.priceModifier;
-    setCalculatedPrice(newPrice);
-  }, [selectedOption, productData.price]);
+    // สูตร: ราคาพื้นฐาน + (พื้นที่ตารางนิ้ว * ราคาต่อนิ้ว)
+    const area = width * height;
+    const pricePerSquareInch = 0.5; // (ตัวอย่าง) ราคา 0.5 ต่อตารางนิ้ว แก้ไขตามต้องการ
+    const sizeSurcharge = area * pricePerSquareInch;
 
-  const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptionName = e.target.value;
-    const option = allOptions.find(opt => opt.name === selectedOptionName);
-    if (option) {
-      setSelectedOption(option);
+    const newPrice = data.price + sizeSurcharge;
+    setCalculatedPrice(newPrice);
+  }, [width, height, data.price]);
+
+  // Handler สำหรับตรวจสอบค่าเมื่อมีการพิมพ์ (จำกัด Max 40)
+  const handleDimensionChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (val: number) => void
+  ) => {
+    let val = parseFloat(e.target.value);
+    
+    // ถ้าเกิน 40 ให้ปัดลงมาเหลือ 40 ทันที
+    if (val > 40) val = 40;
+    
+    if (!isNaN(val)) {
+      setter(val);
+    } else {
+        // กรณีลบจนว่าง ให้ใส่ 0 ไปก่อนหรือปล่อยว่าง (ในที่นี้ให้ setter ทำงานเผื่อ user ลบตัวเลข)
+       setter(0); 
     }
   };
-  // (เพิ่ม) --- จบส่วน Logic ---
+
+  // Handler เมื่อพิมพ์เสร็จแล้วเอาเมาส์ออก (Blur) เพื่อกันค่าที่ต่ำกว่า 4
+  const handleBlur = (
+    val: number,
+    setter: (val: number) => void
+  ) => {
+    if (val < 4) {
+        setter(4); // ถ้าต่ำกว่า 4 ให้ดีดกลับเป็น 4
+    }
+  };
+  // (แก้ไข) --- จบส่วน Logic ---
 
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-        {/* --- LEFT: รูปภาพ (คงเดิม) --- */}
+        {/* --- LEFT: รูปภาพ --- */}
         <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto">
           <Image
             src={data.image?.url || "/placeholder.png"}
@@ -116,23 +115,21 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
             {/* Price & Action Row */}
             <div className="flex items-start justify-between w-full gap-4">
-              {/* Price: ซ้าย (สีดำ) */}
+              {/* Price */}
               <div className="flex items-center h-10">
                 <p className="text-3xl font-bold text-black">
-                  {/* (แก้ไข) เปลี่ยนให้แสดงราคาที่คำนวณใหม่ calculatedPrice */}
                   {formatCurrency(calculatedPrice)}
                 </p>
               </div>
 
-              {/* Actions Group: ขวา (ปุ่ม + Refund text) */}
+              {/* Actions */}
               <div className="flex flex-col items-end gap-2">
-                {/* Buttons */}
                 <div className="flex items-center gap-2">
                   <CartButton
                     isPurchased={data.isPurchased}
                     productId={productId}
                     tenantSlug={tenantSlug}
-                    // เราจะเพิ่ม props สำหรับส่งราคาและขนาดในขั้นตอนที่ 5
+                    // TODO: ส่งค่า width, height, unit='in' ไปที่ CartButton
                   />
                   <Button
                     className="size-10"
@@ -153,7 +150,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   </Button>
                 </div>
 
-                {/* Refund Policy */}
                 <p className="text-sm font-medium text-muted-foreground text-right">
                   {data.refundPolicy === "no-refunds"
                     ? "No refunds"
@@ -162,7 +158,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </div>
             </div>
 
-            {/* Store & Ratings (คงเดิม) */}
+            {/* Store Info */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
               <Link
                 href={generateTenantURL(tenantSlug)}
@@ -190,39 +186,47 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </div>
             </div>
 
-            {/* --- (เพิ่ม) ส่วน Dropdown เลือกขนาด แทรกตรงนี้ตามที่ขอครับ --- */}
-            {allOptions.length > 1 && (
-              <div className="pt-4">
-                <label
-                  htmlFor="product-option"
-                  className="text-sm font-medium text-gray-900 mb-2 block"
-                >
-                  Select Option:
-                </label>
-                <select
-                  id="product-option"
-                  value={selectedOption.name}
-                  onChange={handleOptionChange}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  {allOptions.map((option) => (
-                    <option key={option.id || option.name} value={option.name}>
-                      {option.name}{' '}
-                      {option.priceModifier > 0
-                        ? `(+${formatCurrency(option.priceModifier)})`
-                        : option.priceModifier < 0
-                        ? `(${formatCurrency(option.priceModifier)})`
-                        : ''}
-                    </option>
-                  ))}
-                </select>
+            {/* --- (แก้ไข) ส่วน Custom Size Inputs (4-40 in) --- */}
+            <div className="pt-4">
+              <label className="text-sm font-medium text-gray-900 mb-2 block">
+                Custom Size (4" - 40"):
+              </label>
+              <div className="flex gap-4 items-end">
+                {/* Width Input */}
+                <div className="flex-1">
+                  <span className="text-xs text-muted-foreground mb-1 block">Width (in)</span>
+                  <input
+                    type="number"
+                    value={width === 0 ? '' : width} // ยอมให้ว่างตอนลบ
+                    onChange={(e) => handleDimensionChange(e, setWidth)}
+                    onBlur={() => handleBlur(width, setWidth)}
+                    min={4}
+                    max={40}
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
+                
+                <div className="pb-2 text-muted-foreground font-medium">x</div>
+                
+                {/* Height Input */}
+                <div className="flex-1">
+                  <span className="text-xs text-muted-foreground mb-1 block">Height (in)</span>
+                  <input
+                    type="number"
+                    value={height === 0 ? '' : height}
+                    onChange={(e) => handleDimensionChange(e, setHeight)}
+                    onBlur={() => handleBlur(height, setHeight)}
+                    min={4}
+                    max={40}
+                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  />
+                </div>
               </div>
-            )}
-            {/* --- (จบส่วนที่เพิ่ม) --- */}
+            </div>
+            {/* --- (จบส่วนที่แก้ไข) --- */}
 
           </div>
 
-          {/* ส่วน Description (คงเดิม) */}
           <div className="mx-6 mt-6 border-b"></div>
 
           <div className="p-6 pt-4">
@@ -236,7 +240,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             )}
           </div>
 
-          {/* ส่วน Reviews (คงเดิม) */}
           <div className="mx-6 border-b"></div>
 
           <div className="m-6 p-6 border rounded-lg">
