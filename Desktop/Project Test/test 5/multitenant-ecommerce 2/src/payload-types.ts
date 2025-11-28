@@ -75,8 +75,6 @@ export interface Config {
     tenants: Tenant;
     orders: Order;
     reviews: Review;
-    frames: Frame;
-    mats: Mat;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -96,8 +94,6 @@ export interface Config {
     tenants: TenantsSelect<false> | TenantsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
-    frames: FramesSelect<false> | FramesSelect<true>;
-    mats: MatsSelect<false> | MatsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -259,19 +255,6 @@ export interface Product {
    * Price in THB (This is the base price)
    */
   price: number;
-  /**
-   * Add product variants, like different frame sizes.
-   */
-  options?:
-    | {
-        name: string;
-        /**
-         * Enter 50 to add 50 THB, -10 to subtract 10 THB, or 0 for no price change.
-         */
-        priceModifier: number;
-        id?: string | null;
-      }[]
-    | null;
   category?: (string | null) | Category;
   tags?: (string | Tag)[] | null;
   image?: (string | null) | Media;
@@ -280,21 +263,7 @@ export interface Product {
   /**
    * Protected content only visible to customer after purchase. Add product documentation, downloadable files, getting started guides, and bonus materials. Supports Markdown formatting
    */
-  content?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  content?: string | null;
   /**
    * If checked, this product will not be shown on the public storefront
    */
@@ -347,38 +316,6 @@ export interface Review {
   rating: number;
   product: string | Product;
   user: string | User;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * จัดการลายกรอบรูปและราคาต่อนิ้ว (Moulding Inventory)
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "frames".
- */
-export interface Frame {
-  id: string;
-  name: string;
-  sku?: string | null;
-  image: string | Media;
-  pricePerInch: number;
-  widthInches: number;
-  material?: ('wood' | 'metal' | 'plastic') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * จัดการสีกระดาษขอบ (Mat Boards)
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "mats".
- */
-export interface Mat {
-  id: string;
-  name: string;
-  colorCode: string;
-  price?: number | null;
-  texture?: (string | null) | Media;
   updatedAt: string;
   createdAt: string;
 }
@@ -437,14 +374,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
-      } | null)
-    | ({
-        relationTo: 'frames';
-        value: string | Frame;
-      } | null)
-    | ({
-        relationTo: 'mats';
-        value: string | Mat;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -558,13 +487,6 @@ export interface ProductsSelect<T extends boolean = true> {
   name?: T;
   description?: T;
   price?: T;
-  options?:
-    | T
-    | {
-        name?: T;
-        priceModifier?: T;
-        id?: T;
-      };
   category?: T;
   tags?: T;
   image?: T;
@@ -621,32 +543,6 @@ export interface ReviewsSelect<T extends boolean = true> {
   rating?: T;
   product?: T;
   user?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "frames_select".
- */
-export interface FramesSelect<T extends boolean = true> {
-  name?: T;
-  sku?: T;
-  image?: T;
-  pricePerInch?: T;
-  widthInches?: T;
-  material?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "mats_select".
- */
-export interface MatsSelect<T extends boolean = true> {
-  name?: T;
-  colorCode?: T;
-  price?: T;
-  texture?: T;
   updatedAt?: T;
   createdAt?: T;
 }
