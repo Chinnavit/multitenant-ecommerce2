@@ -252,6 +252,16 @@ export interface Product {
     [k: string]: unknown;
   } | null;
   /**
+   * Add available mat colors for this product.
+   */
+  matColors?:
+    | {
+        name: string;
+        hex: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Price in THB (This is the base price)
    */
   price: number;
@@ -486,6 +496,13 @@ export interface ProductsSelect<T extends boolean = true> {
   tenant?: T;
   name?: T;
   description?: T;
+  matColors?:
+    | T
+    | {
+        name?: T;
+        hex?: T;
+        id?: T;
+      };
   price?: T;
   category?: T;
   tags?: T;

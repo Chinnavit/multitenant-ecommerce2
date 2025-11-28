@@ -29,6 +29,31 @@ export const Products: CollectionConfig = {
       name: "description",
       type: "richText",
     },
+    // --- เพิ่มส่วนนี้เข้าไปครับ ---
+    {
+      name: "matColors",
+      label: "Available Mat Colors",
+      type: "array",
+      minRows: 0,
+      admin: {
+        description: "Add available mat colors for this product.",
+      },
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+          label: "Color Name (e.g., White)",
+        },
+        {
+          name: "hex",
+          type: "text",
+          required: true,
+          label: "Hex Code (e.g., #FFFFFF)",
+        },
+      ],
+    },
+    // -------------------------
     {
       name: "price",
       type: "number",
