@@ -10,9 +10,24 @@ interface Props {
     tenantSlug: string;
     productId: string;
     isPurchased?: boolean;
+    // --- เพิ่ม Props ใหม่ ---
+    width?: number;
+    height?: number;
+    matColor?: string;
+    price?: number;
+    // ---------------------
 };
 
-export const CartButton = ({ tenantSlug, productId, isPurchased}: Props) => {
+export const CartButton = ({ 
+    tenantSlug, 
+    productId, 
+    isPurchased,
+    // รับค่า props เข้ามา
+    width,
+    height,
+    matColor,
+    price
+}: Props) => {
     const cart = useCart(tenantSlug);
 
     if (isPurchased) {
@@ -33,7 +48,10 @@ export const CartButton = ({ tenantSlug, productId, isPurchased}: Props) => {
         <Button
             variant="elevated" 
             className={cn("flex-1 bg-pink-400", cart.isProductInCart(productId) && "bg-white")}
-            onClick={() => cart.toggleProduct(productId)}
+            onClick={() => {
+                // ส่งค่า options ไปที่ toggleProduct
+                cart.toggleProduct(productId, { width, height, matColor, price });
+            }}
         >
             {cart.isProductInCart(productId) 
                 ? "Remove from cart"
@@ -42,5 +60,3 @@ export const CartButton = ({ tenantSlug, productId, isPurchased}: Props) => {
         </Button>
     );
 };
-
-

@@ -1,14 +1,11 @@
 "use client";
 
-// TODO: Add real ratings
-
 import Link from "next/link";
 import Image from "next/image";
-// (เพิ่ม/แก้ไข) import useEffect เพิ่มเข้ามา
 import { Fragment, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
-import { CheckIcon, LinkIcon, StarIcon } from "lucide-react";
+import { CheckIcon, LinkIcon, StarIcon, Check } from "lucide-react"; 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 
@@ -16,9 +13,9 @@ import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { StarRating } from "@/components/star-rating";
-import { formatCurrency, generateTenantURL } from "@/lib/utils";
-// (เพิ่ม) Import Product type
-import { Product } from "@/payload-types";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { formatCurrency, generateTenantURL, cn } from "@/lib/utils"; 
 
 const CartButton = dynamic(
   () => import("../components/cart-button").then((mod) => mod.CartButton),
@@ -37,12 +34,8 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
-// (เพิ่ม) สร้าง Type สำหรับ options
-interface ProductOption {
-  id?: string | null;
-  name: string;
-  priceModifier: number;
-}
+// ❌ ลบส่วนนี้ออก หรือ Comment ไว้ เพราะเราจะใช้ข้อมูลจาก DB แทนครับ
+// const MAT_COLORS = [ ... ]; 
 
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
@@ -50,53 +43,60 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     trpc.products.getOne.queryOptions({ id: productId })
   );
 
+  // ✅ 1. ดึงข้อมูลสีจาก Database (ถ้าไม่มีให้เป็น array ว่าง)
+  const matColors = data.matColors || [];
+
   const [isCopied, setIsCopied] = useState(false);
 
-  // (เพิ่ม) --- เริ่มส่วน Logic คำนวณราคา ---
+  // --- Logic State ---
+  const [width, setWidth] = useState<number>(8);
+  const [height, setHeight] = useState<number>(10);
+  const [hasMat, setHasMat] = useState<boolean>(false);
   
-  // แปลง data ให้เป็น type Product เพื่อให้เรียกใช้ .options ได้ง่าย
-  const [productData] = useState<Product>(data as Product);
-
-  // ตัวเลือกพื้นฐาน (ราคาปกติ)
-  const baseOption: ProductOption = {
-    name: "Standard",
-    priceModifier: 0,
-    id: "standard-option",
-  };
-
-  // รวมตัวเลือกทั้งหมด
-  const allOptions: ProductOption[] = [
-    baseOption,
-    ...(productData.options || []),
-  ];
-
-  // State เก็บตัวเลือกที่กำลังเลือกอยู่
-  const [selectedOption, setSelectedOption] = useState<ProductOption>(
-    allOptions[0] ?? baseOption
+  // ✅ 2. เปลี่ยน Default State ให้ใช้สีแรกจาก DB (ถ้ามี)
+  const [matColor, setMatColor] = useState<string>(
+    (matColors.length > 0 && matColors[0]?.id) ? matColors[0].id : ""
   );
-  
-  // State เก็บราคาสุดท้ายที่คำนวณแล้ว
-  const [calculatedPrice, setCalculatedPrice] = useState<number>(productData.price);
+   
+  const [calculatedPrice, setCalculatedPrice] = useState<number>(data.price);
 
-  // คำนวณราคาใหม่ทุกครั้งที่เปลี่ยนตัวเลือก
   useEffect(() => {
-    const newPrice = productData.price + selectedOption.priceModifier;
-    setCalculatedPrice(newPrice);
-  }, [selectedOption, productData.price]);
+    const area = width * height;
+    const framePricePerSqIn = 0.5; 
+    const matPricePerSqIn = 0.2;    
 
-  const handleOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptionName = e.target.value;
-    const option = allOptions.find(opt => opt.name === selectedOptionName);
-    if (option) {
-      setSelectedOption(option);
+    let surcharge = area * framePricePerSqIn;
+
+    if (hasMat) {
+      surcharge += area * matPricePerSqIn;
     }
+
+    setCalculatedPrice(data.price + surcharge);
+  }, [width, height, hasMat, data.price]);
+
+  // Handlers (เหมือนเดิม)
+  const handleDimensionChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    setter: (val: number) => void
+  ) => {
+    const inputValue = e.target.value;
+    if (inputValue === "") {
+      setter(0);
+      return;
+    }
+    let val = parseFloat(inputValue);
+    if (val > 40) val = 40; 
+    if (!isNaN(val)) setter(val);
   };
-  // (เพิ่ม) --- จบส่วน Logic ---
+
+  const handleBlur = (val: number, setter: (val: number) => void) => {
+    if (val < 4) setter(4);
+  };
 
   return (
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
-        {/* --- LEFT: รูปภาพ (คงเดิม) --- */}
+        {/* ... (ส่วนแสดงรูปภาพ เหมือนเดิม) ... */}
         <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto">
           <Image
             src={data.image?.url || "/placeholder.png"}
@@ -108,135 +108,186 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
           />
         </div>
 
-        {/* --- RIGHT: เนื้อหา --- */}
+        {/* --- RIGHT: Content --- */}
         <div className="flex flex-col h-full">
-          {/* Header Group */}
           <div className="p-6 pb-0 flex flex-col gap-4">
             <h1 className="text-4xl font-medium">{data.name}</h1>
 
-            {/* Price & Action Row */}
+            {/* Price & Actions */}
             <div className="flex items-start justify-between w-full gap-4">
-              {/* Price: ซ้าย (สีดำ) */}
               <div className="flex items-center h-10">
                 <p className="text-3xl font-bold text-black">
-                  {/* (แก้ไข) เปลี่ยนให้แสดงราคาที่คำนวณใหม่ calculatedPrice */}
                   {formatCurrency(calculatedPrice)}
                 </p>
               </div>
 
-              {/* Actions Group: ขวา (ปุ่ม + Refund text) */}
               <div className="flex flex-col items-end gap-2">
-                {/* Buttons */}
                 <div className="flex items-center gap-2">
+                  
+                  {/* ✅ 3. ส่ง Props: width, height, matColor ไปยัง CartButton */}
                   <CartButton
                     isPurchased={data.isPurchased}
                     productId={productId}
                     tenantSlug={tenantSlug}
-                    // เราจะเพิ่ม props สำหรับส่งราคาและขนาดในขั้นตอนที่ 5
+                    width={width}
+                    height={height}
+                    matColor={hasMat ? matColor : undefined}
+                    price={calculatedPrice} // (Optional) ส่งราคาไปด้วยก็ได้ถ้าต้องการ
                   />
+
                   <Button
                     className="size-10"
                     variant="elevated"
                     onClick={() => {
                       setIsCopied(true);
                       navigator.clipboard.writeText(window.location.href);
-                      toast.success("URL copied to clipboard");
+                      toast.success("URL copied");
                       setTimeout(() => setIsCopied(false), 1000);
                     }}
                     disabled={isCopied}
                   >
-                    {isCopied ? (
-                      <CheckIcon className="size-4" />
-                    ) : (
-                      <LinkIcon className="size-4" />
-                    )}
+                    {isCopied ? <CheckIcon className="size-4" /> : <LinkIcon className="size-4" />}
                   </Button>
                 </div>
-
-                {/* Refund Policy */}
                 <p className="text-sm font-medium text-muted-foreground text-right">
-                  {data.refundPolicy === "no-refunds"
-                    ? "No refunds"
-                    : `${data.refundPolicy} money back guarantee`}
+                  {data.refundPolicy === "no-refunds" ? "No refunds" : `${data.refundPolicy} guarantee`}
                 </p>
               </div>
             </div>
 
-            {/* Store & Ratings (คงเดิม) */}
+            {/* ... (Store & Ratings เหมือนเดิม) ... */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
-              <Link
-                href={generateTenantURL(tenantSlug)}
-                className="flex items-center gap-2 hover:opacity-80 transition"
-              >
+              <Link href={generateTenantURL(tenantSlug)} className="flex items-center gap-2 hover:opacity-80 transition">
                 {data.tenant.image?.url && (
-                  <Image
-                    src={data.tenant.image.url}
-                    alt={data.tenant.name}
-                    width={24}
-                    height={24}
-                    className="rounded-full border shrink-0 size-6"
-                  />
+                  <Image src={data.tenant.image.url} alt={data.tenant.name} width={24} height={24} className="rounded-full border size-6" />
                 )}
-                <span className="underline font-medium text-black">
-                  {data.tenant.name}
-                </span>
+                <span className="underline font-medium text-black">{data.tenant.name}</span>
               </Link>
               <div className="w-px h-4 bg-gray-300 hidden sm:block"></div>
               <div className="flex items-center gap-3">
                 <StarRating rating={data.reviewRating} iconClassName="size-4" />
-                <span className="font-medium text-black">
-                  {data.reviewCount} ratings
-                </span>
+                <span className="font-medium text-black">{data.reviewCount} ratings</span>
               </div>
             </div>
 
-            {/* --- (เพิ่ม) ส่วน Dropdown เลือกขนาด แทรกตรงนี้ตามที่ขอครับ --- */}
-            {allOptions.length > 1 && (
-              <div className="pt-4">
-                <label
-                  htmlFor="product-option"
-                  className="text-sm font-medium text-gray-900 mb-2 block"
-                >
-                  Select Option:
+            {/* --- Customization Section --- */}
+            <div className="pt-6 space-y-6">
+               
+              {/* 1. Size Selection (เหมือนเดิม) */}
+              <div>
+                <label className="text-sm font-medium text-gray-900 mb-2 block">
+                  Custom Size (4&quot; - 40&quot;):
                 </label>
-                <select
-                  id="product-option"
-                  value={selectedOption.name}
-                  onChange={handleOptionChange}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  {allOptions.map((option) => (
-                    <option key={option.id || option.name} value={option.name}>
-                      {option.name}{' '}
-                      {option.priceModifier > 0
-                        ? `(+${formatCurrency(option.priceModifier)})`
-                        : option.priceModifier < 0
-                        ? `(${formatCurrency(option.priceModifier)})`
-                        : ''}
-                    </option>
-                  ))}
-                </select>
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label htmlFor="width-input" className="text-xs text-muted-foreground mb-1 block">Width (in)</label>
+                    <input
+                      id="width-input"
+                      placeholder="8"
+                      type="number"
+                      value={width === 0 ? '' : width}
+                      onChange={(e) => handleDimensionChange(e, setWidth)}
+                      onBlur={() => handleBlur(width, setWidth)}
+                      min={4} max={40}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </div>
+                  <div className="pb-2 text-muted-foreground font-medium">x</div>
+                  <div className="flex-1">
+                    <label htmlFor="height-input" className="text-xs text-muted-foreground mb-1 block">Height (in)</label>
+                    <input
+                      id="height-input"
+                      placeholder="10"
+                      type="number"
+                      value={height === 0 ? '' : height}
+                      onChange={(e) => handleDimensionChange(e, setHeight)}
+                      onBlur={() => handleBlur(height, setHeight)}
+                      min={4} max={40}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-            {/* --- (จบส่วนที่เพิ่ม) --- */}
+
+              {/* 2. Mat Selection */}
+              <div className="flex flex-col gap-4 border p-4 rounded-md bg-gray-50/50">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="mat-switch" className="text-base font-medium text-black">
+                      Add Mat Board
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Adds a decorative border.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      {hasMat && (
+                          <span className="text-sm font-medium text-green-600">
+                              + {formatCurrency(width * height * 0.2)}
+                          </span>
+                      )}
+                      <Switch
+                          id="mat-switch"
+                          checked={hasMat}
+                          onCheckedChange={setHasMat}
+                      />
+                  </div>
+                </div>
+
+                {/* ✅ 4. แก้ไข Loop แสดงสี โดยใช้ข้อมูลจริงจาก matColors */}
+                {hasMat && matColors.length > 0 && (
+                  <div className="pt-2 border-t mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <span className="text-xs text-muted-foreground mb-3 block font-medium uppercase tracking-wider">
+                        Select Mat Color
+                      </span>
+                      <div className="flex gap-3 flex-wrap">
+                        {matColors.map((color: any) => (
+                          <button
+                            key={color.id} // ใช้ ID จาก DB เป็น Key
+                            onClick={() => setMatColor(color.id)}
+                            className={cn(
+                              "group relative size-10 rounded-full border-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all",
+                              "border-gray-200", // Default border เพราะใน DB ไม่มีค่า border
+                              matColor === color.id ? "ring-2 ring-offset-2 ring-black border-transparent scale-110" : "hover:scale-105"
+                            )}
+                            style={{ backgroundColor: color.hex }}
+                            title={color.name}
+                          >
+                            {matColor === color.id && (
+                              <span className="absolute inset-0 flex items-center justify-center">
+                                <Check className={cn(
+                                  "size-5",
+                                  // ปรับสีเครื่องหมายถูกอัตโนมัติ (ขาว/ดำ) ตามชื่อสี
+                                  ["black", "navy", "forest", "gray"].some(n => color.name.toLowerCase().includes(n)) ? "text-white" : "text-black"
+                                )} />
+                              </span>
+                            )}
+                            <span className="sr-only">{color.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {/* หาชื่อสีที่เลือกจาก Array matColors */}
+                        Selected: <span className="font-medium text-black">
+                          {matColors.find((c: any) => c.id === matColor)?.name}
+                        </span>
+                      </p>
+                  </div>
+                )}
+              </div>
+
+            </div>
+            {/* --- End Customization --- */}
 
           </div>
-
-          {/* ส่วน Description (คงเดิม) */}
+          {/* ... (ส่วน Description และ Review เหมือนเดิม) ... */}
           <div className="mx-6 mt-6 border-b"></div>
 
           <div className="p-6 pt-4">
             <h3 className="text-lg font-semibold mb-2">Description</h3>
-            {data.description ? (
-              <RichText data={data.description} />
-            ) : (
-              <p className="font-medium text-muted-foreground italic">
-                No description provided
-              </p>
-            )}
+            {data.description ? <RichText data={data.description} /> : <p className="text-muted-foreground italic">No description provided</p>}
           </div>
 
-          {/* ส่วน Reviews (คงเดิม) */}
           <div className="mx-6 border-b"></div>
 
           <div className="m-6 p-6 border rounded-lg">
@@ -244,22 +295,14 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             <div className="flex items-center gap-x-2 font-medium mb-4">
               <StarIcon className="size-5 fill-black text-black" />
               <p className="text-xl">{data.reviewRating.toFixed(1)}</p>
-              <p className="text-sm text-muted-foreground">
-                Based on {data.reviewCount} reviews
-              </p>
+              <p className="text-sm text-muted-foreground">Based on {data.reviewCount} reviews</p>
             </div>
-
             <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center">
               {[5, 4, 3, 2, 1].map((stars) => (
                 <Fragment key={stars}>
                   <div className="font-medium text-sm w-12">{stars} star</div>
-                  <Progress
-                    value={data.ratingDistribution[stars]}
-                    className="h-2"
-                  />
-                  <div className="font-medium text-sm w-10 text-right">
-                    {data.ratingDistribution[stars]}%
-                  </div>
+                  <Progress value={data.ratingDistribution[stars]} className="h-2" />
+                  <div className="font-medium text-sm w-10 text-right">{data.ratingDistribution[stars]}%</div>
                 </Fragment>
               ))}
             </div>
@@ -275,12 +318,7 @@ export const ProductViewSkeleton = () => {
     <div className="px-4 lg:px-12 py-10">
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
         <div className="relative min-h-[500px] lg:h-full border-b lg:border-b-0 lg:border-r">
-          <Image
-            src={"/placeholder.png"}
-            alt="Placeholder"
-            fill
-            className="object-cover object-top"
-          />
+          <Image src={"/placeholder.png"} alt="Placeholder" fill className="object-cover object-top" />
         </div>
         <div className="h-96 bg-gray-50/50"></div>
       </div>
