@@ -11,7 +11,8 @@ interface Props {
     width?: number;
     height?: number;
     matColor?: string;
-    protectionType?: string; 
+    protectionType?: string;
+    price?: number;
 };
 
 export const CartButton = ({ 
@@ -22,7 +23,8 @@ export const CartButton = ({
     width,
     height,
     matColor,
-    protectionType
+    protectionType,
+    price
 }: Props) => {
     const cart = useCart(tenantSlug);
 
@@ -42,7 +44,13 @@ export const CartButton = ({
             className={cn("flex-1 bg-pink-400", cart.isProductInCart(productId) && "bg-white")}
             onClick={() => {
                 // ✅ ส่งข้อมูล Options ไปบันทึกในตะกร้า (ต้องแก้ useCart ให้รับค่าด้วย)
-                cart.toggleProduct(productId, { width, height, matColor, protectionType }); 
+                cart.toggleProduct(productId, { 
+                    width, 
+                    height, 
+                    matColor, 
+                    protectionType,
+                    price 
+                }); 
             }}
         >
             {cart.isProductInCart(productId) 

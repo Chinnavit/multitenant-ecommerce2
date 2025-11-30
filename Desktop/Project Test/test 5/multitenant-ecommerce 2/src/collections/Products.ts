@@ -53,14 +53,15 @@ export const Products: CollectionConfig = {
         },
       ],
     },
-    // เพิ่มส่วน Protection Options 
+
+    // ✅ 2. เพิ่ม Field: Protection Options
     {
       name: "protectionOptions",
       label: "Protection/Glass Options",
       type: "array",
       minRows: 0,
       admin: {
-        description: "Options for protection layer and glass types (e.g., Film, Acrylic)", 
+        description: "Options for protection layer and glass types (e.g., Film, Acrylic)",
       },
       fields: [
         {
