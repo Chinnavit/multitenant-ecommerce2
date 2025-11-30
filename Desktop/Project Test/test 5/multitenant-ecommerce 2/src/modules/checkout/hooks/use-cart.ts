@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 
-import { useCartStore } from "../store/use-card-store";
+import { useCartStore, CartItem } from "../store/use-card-store";
 
 export const useCart = (tenantSlug: string) => {
     const addProduct = useCartStore((state) => state.addProduct);
@@ -9,13 +9,18 @@ export const useCart = (tenantSlug: string) => {
     const clearCart = useCartStore((state) => state.clearCart);
     const clearAllCarts = useCartStore((state) => state.clearAllCarts);
 
-    const productIds = useCartStore(useShallow((state) => state.tenantCarts[tenantSlug]?.productIds || []));
+    // ดึง items ออกมาแทน productIds
+    const items = useCartStore(useShallow((state) => state.tenantCarts[tenantSlug]?.items || []));
 
-    const toggleProduct = useCallback(( productId:string ) => {
+    // แปลง items เป็น list ของ ID เพื่อให้ง่ายต่อการเช็ค isProductInCart แบบเดิม
+    const productIds = items.map(item => item.productId);
+
+    // รับ options เพิ่มเข้ามา
+    const toggleProduct = useCallback(( productId: string, options?: Partial<CartItem> ) => {
         if (productIds.includes(productId)) {
             removeProduct(tenantSlug, productId);
         } else {
-            addProduct(tenantSlug, productId);
+            addProduct(tenantSlug, productId, options);
         }
     }, [addProduct, removeProduct, productIds, tenantSlug]);
 
@@ -27,22 +32,15 @@ export const useCart = (tenantSlug: string) => {
         clearCart(tenantSlug);
     }, [tenantSlug, clearCart]);
 
-    const handleAddProduct = useCallback(( productId: string) => {
-        addProduct(tenantSlug, productId);
-    }, [addProduct, tenantSlug]);
-
-    const handleRemoveProduct = useCallback(( productId: string) => {
-        removeProduct(tenantSlug, productId);
-    }, [removeProduct, tenantSlug]);
-
     return {
+        items, // ส่ง items กลับไปเผื่อใช้แสดงผล
         productIds,
-        addProduct: handleAddProduct,
-        removeProduct: handleRemoveProduct,
+        addProduct: (id: string, opts?: Partial<CartItem>) => addProduct(tenantSlug, id, opts),
+        removeProduct: (id: string) => removeProduct(tenantSlug, id),
         clearCart: clearTenantCart,
         clearAllCarts,
         toggleProduct,
         isProductInCart,
-        totalItems: productIds.length,
+        totalItems: items.length,
     };
 };
