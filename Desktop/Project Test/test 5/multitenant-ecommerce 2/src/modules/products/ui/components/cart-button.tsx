@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/modules/checkout/hooks/use-cart";
 
 interface Props {
-    tenantSlug: string;
+tenantSlug: string;
     productId: string;
     isPurchased?: boolean;
-    // ✅ เพิ่ม Props เหล่านี้เข้าไปครับ
     width?: number;
     height?: number;
     matColor?: string;
@@ -16,10 +15,9 @@ interface Props {
 };
 
 export const CartButton = ({ 
-    tenantSlug, 
+tenantSlug, 
     productId, 
     isPurchased,
-    // ✅ รับค่าเข้ามา
     width,
     height,
     matColor,
@@ -43,7 +41,6 @@ export const CartButton = ({
             variant="elevated" 
             className={cn("flex-1 bg-pink-400", cart.isProductInCart(productId) && "bg-white")}
             onClick={() => {
-                // ✅ ส่งข้อมูล Options ไปบันทึกในตะกร้า (ต้องแก้ useCart ให้รับค่าด้วย)
                 cart.toggleProduct(productId, { 
                     width, 
                     height, 

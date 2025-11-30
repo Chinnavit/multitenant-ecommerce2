@@ -1,8 +1,6 @@
-// src/modules/checkout/store/use-card-store.ts
 import { create } from "zustand";
 import { createJSONStorage , persist } from "zustand/middleware"
 
-// ✅ สร้าง Type สำหรับสินค้าในตะกร้า
 export interface CartItem {
     productId: string;
     width?: number;
@@ -13,12 +11,11 @@ export interface CartItem {
 }
 
 interface TenantCard {
-    items: CartItem[]; // ✅ เปลี่ยนจาก productIds: string[] เป็น items
+    items: CartItem[];
 };
 
 interface CartState {
     tenantCarts : Record<string, TenantCard>;
-    // ✅ อัปเดตฟังก์ชันรับ options
     addProduct: (tenantSlug: string, productId: string, options?: Partial<CartItem>) => void;
     removeProduct: (tenantSlug: string, productId: string) => void;
     clearCart: (tenantSlug: string) => void;
