@@ -1,22 +1,22 @@
 import { create } from "zustand";
 import { createJSONStorage , persist } from "zustand/middleware"
 
-// สร้าง Interface สำหรับสินค้าในตะกร้า
+// ✅ 1. เพิ่ม protectionType ใน Interface CartItem
 export interface CartItem {
     productId: string;
     width?: number;
     height?: number;
     matColor?: string;
     price?: number;
+    protectionType?: string; // <--- เพิ่มบรรทัดนี้ครับ
 }
 
 interface TenantCart {
-    items: CartItem[]; // เปลี่ยนจาก productIds: string[] เป็น items: CartItem[]
+    items: CartItem[];
 };
 
 interface CartState {
     tenantCarts : Record<string, TenantCart>;
-    // อัปเดต Type ของ Function ให้รับ options ได้
     addProduct: (tenantSlug: string, productId: string, options?: Partial<CartItem>) => void;
     removeProduct: (tenantSlug: string, productId: string) => void;
     clearCart: (tenantSlug: string) => void;
@@ -30,10 +30,10 @@ export const useCartStore = create<CartState>()(
             addProduct: (tenantSlug, productId, options) =>
                 set((state) => {
                     const currentItems = state.tenantCarts[tenantSlug]?.items || [];
-                    // ตรวจสอบว่ามีสินค้านี้อยู่แล้วหรือไม่ (ถ้ามีให้อัปเดต หรือไม่ทำอะไร)
+                    // ตรวจสอบว่าสินค้ามีอยู่แล้วหรือไม่
                     const exists = currentItems.some(item => item.productId === productId);
                     
-                    if (exists) return state; // หรือจะให้ update options ก็ได้ตาม logic ที่ต้องการ
+                    if (exists) return state; 
 
                     return {
                         tenantCarts:{

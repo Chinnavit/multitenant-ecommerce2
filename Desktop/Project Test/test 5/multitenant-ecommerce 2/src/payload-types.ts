@@ -262,6 +262,18 @@ export interface Product {
       }[]
     | null;
   /**
+   * Options for protection layer and glass types (e.g., Film, Acrylic)
+   */
+  protectionOptions?:
+    | {
+        name: string;
+        price: number;
+        slug: string;
+        description?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Price in THB (This is the base price)
    */
   price: number;
@@ -501,6 +513,15 @@ export interface ProductsSelect<T extends boolean = true> {
     | {
         name?: T;
         hex?: T;
+        id?: T;
+      };
+  protectionOptions?:
+    | T
+    | {
+        name?: T;
+        price?: T;
+        slug?: T;
+        description?: T;
         id?: T;
       };
   price?: T;

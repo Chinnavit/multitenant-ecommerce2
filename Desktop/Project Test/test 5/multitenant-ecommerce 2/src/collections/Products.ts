@@ -29,7 +29,7 @@ export const Products: CollectionConfig = {
       name: "description",
       type: "richText",
     },
-    // --- เพิ่มส่วนนี้เข้าไปครับ ---
+    // --- เพิ่มส่วน matColors ---
     {
       name: "matColors",
       label: "Available Mat Colors",
@@ -53,7 +53,43 @@ export const Products: CollectionConfig = {
         },
       ],
     },
-    // -------------------------
+    // เพิ่มส่วน Protection Options 
+    {
+      name: "protectionOptions",
+      label: "Protection/Glass Options",
+      type: "array",
+      minRows: 0,
+      admin: {
+        description: "Options for protection layer and glass types (e.g., Film, Acrylic)", 
+      },
+      fields: [
+        {
+          name: "name",
+          type: "text",
+          required: true,
+          label: "Option Name (e.g. Film Coating)",
+        },
+        {
+          name: "price",
+          type: "number",
+          required: true,
+          defaultValue: 0,
+          label: "Price (+THB)",
+        },
+        {
+          name: "slug",
+          type: "text",
+          required: true,
+          label: "Slug/ID (Important: Must use 'film', 'acrylic', or 'normal' to match frontend logic)",
+        },
+        {
+          name: "description",
+          type: "textarea",
+          label: "Description (Displayed below option name)",
+        }
+      ],
+    },
+    // ----------------------------------------
     {
       name: "price",
       type: "number",

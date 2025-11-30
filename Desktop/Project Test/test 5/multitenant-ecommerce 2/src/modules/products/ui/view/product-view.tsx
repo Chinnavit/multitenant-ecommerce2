@@ -35,65 +35,63 @@ interface ProductViewProps {
   tenantSlug: string;
 }
 
-// กำหนดราคาบวกเพิ่มสำหรับ Option ต่างๆ
-const PRICE_MODIFIERS = {
-  FILM: 100,       // ราคา Film Coating
-  ACRYLIC: 200,    // ราคา Acrylic Glass
-  MAT_BOARD: 20,   // ราคา Mat Board คงที่ 20 บาท
-};
-
 export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(
     trpc.products.getOne.queryOptions({ id: productId })
   );
 
+  // 1. ดึงข้อมูลจาก Database
   const matColors = data.matColors || [];
+  // ✅ ดึง Protection Options จาก DB (ถ้าไม่มี ให้เป็น array ว่าง)
+  const protectionOptions = data.protectionOptions || [];
+
   const [isCopied, setIsCopied] = useState(false);
 
   // --- Logic State ---
   const [width, setWidth] = useState<number>(8);
   const [height, setHeight] = useState<number>(10);
   
-  // 1. Mat Board State
+  // Mat Board State
   const [hasMat, setHasMat] = useState<boolean>(false);
   const [matColor, setMatColor] = useState<string>(
     (matColors.length > 0 && matColors[0]?.id) ? matColors[0].id : ""
   );
 
-  // 2. Protection State
-  // ✅ แก้ไข: เปลี่ยน Default เป็น false (ให้ User ติกเอง)
+  // Protection State
   const [hasProtection, setHasProtection] = useState<boolean>(false); 
-  const [protectionType, setProtectionType] = useState<"normal" | "film" | "acrylic">("film");
+  // ✅ ใช้ slug ของตัวเลือกแรก หรือ 'film' เป็นค่าเริ่มต้น (ถ้ามี)
+  const [protectionType, setProtectionType] = useState<string>(() => {
+    const defaultOption = protectionOptions.find(opt => opt.slug === 'film');
+    return defaultOption ? 'film' : (protectionOptions[0]?.slug || "");
+  });
    
   const [calculatedPrice, setCalculatedPrice] = useState<number>(data.price);
 
   useEffect(() => {
-    // คำนวณพื้นที่ (สำหรับกรอบรูป)
     const area = width * height;
-    const framePricePerSqIn = 0.5; // ราคาต่อตารางนิ้วของกรอบรูป
-
-    // 1. ราคาตั้งต้น + ราคากรอบรูป (ตามขนาด)
+    const framePricePerSqIn = 0.5; 
+    
+    // 1. ราคาพื้นฐาน + ขนาด
     let total = data.price + (area * framePricePerSqIn);
 
     // 2. บวกราคา Mat Board (ราคาคงที่ 20 บาท)
     if (hasMat) {
-      total += PRICE_MODIFIERS.MAT_BOARD; 
+      total += 20; 
     }
 
-    // 3. บวกราคา Protection Layer
-    if (hasProtection) {
-      if (protectionType === "film") {
-        total += PRICE_MODIFIERS.FILM;
-      } else if (protectionType === "acrylic") {
-        total += PRICE_MODIFIERS.ACRYLIC;
+    // 3. บวกราคา Protection Layer (ดึงราคาจาก DB)
+    if (hasProtection && protectionType) {
+      const selectedOption = protectionOptions.find(opt => opt.slug === protectionType);
+      if (selectedOption) {
+        total += selectedOption.price;
       }
     }
 
     setCalculatedPrice(total);
-  }, [width, height, hasMat, hasProtection, protectionType, data.price]);
+  }, [width, height, hasMat, hasProtection, protectionType, data.price, protectionOptions]);
 
-  // Handlers
+  // Handlers ... (เหมือนเดิม)
   const handleDimensionChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setter: (val: number) => void
@@ -149,7 +147,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     width={width}
                     height={height}
                     matColor={hasMat ? matColor : undefined}
-                    // protection={hasProtection ? protectionType : undefined} 
+                    protectionType={hasProtection ? protectionType : undefined} 
                   />
                   <Button
                     className="size-10"
@@ -189,7 +187,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             {/* --- Customization Section --- */}
             <div className="pt-6 space-y-6">
                
-              {/* 1. Size Selection */}
+              {/* 1. Size Selection (คงเดิม) */}
               <div>
                 <label className="text-sm font-medium text-gray-900 mb-2 block">
                   Custom Size (4&quot; - 40&quot;):
@@ -225,7 +223,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 </div>
               </div>
 
-              {/* 2. Mat Selection */}
+              {/* 2. Mat Selection (คงเดิม) */}
               <div className="flex flex-col gap-4 border p-4 rounded-md bg-gray-50/50">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -239,7 +237,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   <div className="flex items-center gap-2">
                       {hasMat && (
                           <span className="text-sm font-medium text-green-600">
-                              + {formatCurrency(PRICE_MODIFIERS.MAT_BOARD)}
+                              + {formatCurrency(20)}
                           </span>
                       )}
                       <Switch
@@ -289,7 +287,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 )}
               </div>
 
-              {/* 3. Protection Layer */}
+              {/* 3. Protection Layer (Dynamic from DB) */}
               <div className="flex flex-col gap-4 border p-4 rounded-md bg-gray-50/50">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -301,10 +299,19 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    {hasProtection && protectionType !== "normal" && (
-                      <span className="text-sm font-medium text-green-600">
-                        + {formatCurrency(protectionType === "film" ? PRICE_MODIFIERS.FILM : PRICE_MODIFIERS.ACRYLIC)}
-                      </span>
+                    {hasProtection && protectionType && (
+                       // แสดงราคาของตัวที่เลือกอยู่
+                       (() => {
+                         const selected = protectionOptions.find((opt:any) => opt.slug === protectionType);
+                         if(selected && selected.price > 0) {
+                           return (
+                             <span className="text-sm font-medium text-green-600">
+                               + {formatCurrency(selected.price)}
+                             </span>
+                           );
+                         }
+                         return null;
+                       })()
                     )}
                     <Switch
                       id="protection-switch"
@@ -314,69 +321,38 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                   </div>
                 </div>
 
-                {hasProtection && (
+                {hasProtection && protectionOptions.length > 0 && (
                   <div className="pt-2 border-t mt-2 animate-in fade-in slide-in-from-top-1 duration-200">
                     <span className="text-xs text-muted-foreground mb-3 block font-medium uppercase tracking-wider">
                         Select Type
                     </span>
                     <RadioGroup 
                       value={protectionType} 
-                      onValueChange={(val) => setProtectionType(val as "normal" | "film" | "acrylic")}
+                      onValueChange={setProtectionType}
                       className="flex flex-col gap-3"
                     >
-                      {/* Option 1: Normal Glass */}
-                      <div>
-                        <RadioGroupItem value="normal" id="type-normal" className="peer sr-only" />
-                        <Label
-                          htmlFor="type-normal"
-                          className="flex items-center justify-between rounded-md border-2 border-muted bg-white p-3 hover:bg-gray-50 peer-data-[state=checked]:border-black peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-black cursor-pointer transition-all"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-sm">Normal Glass</span>
-                              <span className="text-xs text-muted-foreground">Standard clear glass</span>
+                      {/* ✅ Loop สร้างตัวเลือกจาก Database */}
+                      {protectionOptions.map((option: any) => (
+                        <div key={option.id}>
+                          <RadioGroupItem value={option.slug} id={`type-${option.slug}`} className="peer sr-only" />
+                          <Label
+                            htmlFor={`type-${option.slug}`}
+                            className="flex items-center justify-between rounded-md border-2 border-muted bg-white p-3 hover:bg-gray-50 peer-data-[state=checked]:border-black peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-black cursor-pointer transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{option.name}</span>
+                                <span className="text-xs text-muted-foreground">{option.description}</span>
+                              </div>
                             </div>
-                          </div>
-                        </Label>
-                      </div>
-
-                      {/* Option 2: Film Coating */}
-                      <div>
-                        <RadioGroupItem value="film" id="type-film" className="peer sr-only" />
-                        <Label
-                          htmlFor="type-film"
-                          className="flex items-center justify-between rounded-md border-2 border-muted bg-white p-3 hover:bg-gray-50 peer-data-[state=checked]:border-black peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-black cursor-pointer transition-all"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-sm">Film Coating</span>
-                              <span className="text-xs text-muted-foreground">Protective layer (Recommended)</span>
-                            </div>
-                          </div>
-                          <span className="text-sm text-green-600 font-medium">
-                            + {formatCurrency(PRICE_MODIFIERS.FILM)}
-                          </span>
-                        </Label>
-                      </div>
-
-                      {/* Option 3: Acrylic Glass */}
-                      <div>
-                        <RadioGroupItem value="acrylic" id="type-acrylic" className="peer sr-only" />
-                        <Label
-                          htmlFor="type-acrylic"
-                          className="flex items-center justify-between rounded-md border-2 border-muted bg-white p-3 hover:bg-gray-50 peer-data-[state=checked]:border-black peer-data-[state=checked]:ring-1 peer-data-[state=checked]:ring-black cursor-pointer transition-all"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-sm">Acrylic Glass</span>
-                              <span className="text-xs text-muted-foreground">Premium, lightweight & safe</span>
-                            </div>
-                          </div>
-                          <span className="text-sm text-green-600 font-medium">
-                            + {formatCurrency(PRICE_MODIFIERS.ACRYLIC)}
-                          </span>
-                        </Label>
-                      </div>
+                            {option.price > 0 && (
+                                <span className="text-sm text-green-600 font-medium">
+                                    + {formatCurrency(option.price)}
+                                </span>
+                            )}
+                          </Label>
+                        </div>
+                      ))}
                     </RadioGroup>
                   </div>
                 )}
@@ -387,15 +363,13 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
           </div>
 
+          {/* ... (ส่วน Description และ Reviews เหมือนเดิม) ... */}
           <div className="mx-6 mt-6 border-b"></div>
-
           <div className="p-6 pt-4">
             <h3 className="text-lg font-semibold mb-2">Description</h3>
             {data.description ? <RichText data={data.description} /> : <p className="text-muted-foreground italic">No description provided</p>}
           </div>
-
           <div className="mx-6 border-b"></div>
-
           <div className="m-6 p-6 border rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
             <div className="flex items-center gap-x-2 font-medium mb-4">
