@@ -20,8 +20,6 @@ import { Reviews } from "./collections/Reviews";
 import { Products } from "./collections/Products";
 import { Categories } from "./collections/Categories";
 
-import { Frames } from "./collections/Frames"; // <--- เพิ่มบรรทัดนี้
-import { Mats } from "./collections/Mats";     // <--- เพิ่มบรรทัดนี้
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -47,9 +45,6 @@ export default buildConfig({
     Tenants,
     Orders,
     Reviews,
-
-    Frames,
-    Mats,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || (() => { throw new Error("PAYLOAD_SECRET not found") })(),
