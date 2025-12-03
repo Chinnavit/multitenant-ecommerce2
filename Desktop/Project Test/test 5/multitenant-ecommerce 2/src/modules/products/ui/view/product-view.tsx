@@ -238,6 +238,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     height={height}
                     matColor={hasMat ? matColor : undefined}
                     protectionType={hasProtection ? protectionType : undefined}
+                    price={calculatedPrice}
                   />
                   <Button
                     className="size-10"
