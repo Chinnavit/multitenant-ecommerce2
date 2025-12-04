@@ -1,18 +1,31 @@
 import Link from "next/link";
-
 import { cn } from "@/lib/utils"
-
 import { Button } from "@/components/ui/button";
-
 import { useCart } from "@/modules/checkout/hooks/use-cart";
 
 interface Props {
     tenantSlug: string;
     productId: string;
     isPurchased?: boolean;
+    // ✅ เพิ่ม Props ที่ต้องรับจาก ProductView
+    width?: number;
+    height?: number;
+    matColor?: string;
+    protectionType?: string;
+    price?: number;
 };
 
-export const CartButton = ({ tenantSlug, productId, isPurchased}: Props) => {
+export const CartButton = ({ 
+    tenantSlug, 
+    productId, 
+    isPurchased,
+    // ✅ รับค่ามา
+    width,
+    height,
+    matColor,
+    protectionType,
+    price
+}: Props) => {
     const cart = useCart(tenantSlug);
 
     if (isPurchased) {
@@ -33,7 +46,16 @@ export const CartButton = ({ tenantSlug, productId, isPurchased}: Props) => {
         <Button
             variant="elevated" 
             className={cn("flex-1 bg-pink-400", cart.isProductInCart(productId) && "bg-white")}
-            onClick={() => cart.toggleProduct(productId)}
+            onClick={() => {
+                // ✅ ส่ง options ไปที่ toggleProduct
+                cart.toggleProduct(productId, { 
+                    width, 
+                    height, 
+                    matColor, 
+                    protectionType,
+                    price 
+                });
+            }}
         >
             {cart.isProductInCart(productId) 
                 ? "Remove from cart"
@@ -42,5 +64,3 @@ export const CartButton = ({ tenantSlug, productId, isPurchased}: Props) => {
         </Button>
     );
 };
-
-
