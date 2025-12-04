@@ -72,10 +72,8 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [isCopied, setIsCopied] = useState(false);
 
-  // ✅ 1. ใช้ค่าเริ่มต้นจาก Database (ถ้าไม่มีให้ใช้ 8x10)
   const defaultWidth = data.width || 8;
   const defaultHeight = data.height || 10;
-
   // --- Logic State ---
   const [width, setWidth] = useState<number>(defaultWidth);
   const [height, setHeight] = useState<number>(defaultHeight);
@@ -171,28 +169,35 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   // ... (useEffect และ Handlers อื่นๆ เหมือนเดิม)
   useEffect(() => {
-    // คำนวณพื้นที่ปัจจุบัน และ พื้นที่มาตรฐาน
+    // ✅ คำนวณพื้นที่ปัจจุบัน และ พื้นที่มาตรฐาน
     const currentArea = width * height;
     const defaultArea = defaultWidth * defaultHeight;
 
-    const framePricePerSqIn = 0.5; // (หรือ 0.1 ตามที่คุณตั้งไว้)
+    const framePricePerSqIn = 0.5; // ราคาต่อตารางนิ้ว (ปรับได้ตามต้องการ)
 
-    // ✅ สูตรใหม่: ราคาเริ่มต้น + (ส่วนต่างพื้นที่ * ราคาต่อหน่วย)
-    // ถ้าเลือกขนาดเท่าเดิม (currentArea == defaultArea) ผลลัพธ์จะเป็น 0 -> ราคาจะเป็น 500 เท่าเดิม
+    // ✅ สูตร: ราคาฐาน + (ส่วนต่างพื้นที่ * ราคาต่อหน่วย)
+    // ตัวอย่าง: ถ้าเลือกขนาดเท่าเดิม (currentArea == defaultArea) -> ส่วนต่างเป็น 0 -> ราคาจะเท่ากับ data.price
+    // ถ้าขนาดใหญ่ขึ้น -> บวกเพิ่มตามจริง
+    // ถ้าขนาดเล็กลง -> ราคาก็จะลดลงจากราคาฐาน
     let total = data.price + (currentArea - defaultArea) * framePricePerSqIn;
 
-    // บวกราคา Option อื่นๆ (Mat, Protection) ตามปกติ
+    // บวกราคา Option อื่นๆ (Mat)
     if (hasMat) {
       total += 20;
     }
 
+    // บวกราคา Option (Protection)
     if (hasProtection && protectionType) {
-      // ... logic protection เดิม
       const selectedOption = protectionOptions.find(
         (opt) => opt.slug === protectionType
       );
-      if (selectedOption) total += selectedOption.price;
+      if (selectedOption) {
+        total += selectedOption.price;
+      }
     }
+
+    // ป้องกันราคาติดลบ (กรณี User ใส่ขนาดเล็กมากๆ)
+    if (total < 0) total = 0;
 
     setCalculatedPrice(total);
   }, [
@@ -203,8 +208,8 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     protectionType,
     data.price,
     protectionOptions,
-    defaultWidth,
-    defaultHeight,
+    defaultWidth, // อย่าลืมเพิ่ม dependencies นี้
+    defaultHeight, // อย่าลืมเพิ่ม dependencies นี้
   ]);
 
   const handleDimensionChange = (
