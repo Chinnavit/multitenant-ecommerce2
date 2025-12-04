@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
-
-import { useCartStore } from "../store/use-card-store";
+import { useCartStore, CartItem } from "../store/use-card-store"; // Import CartItem
 
 export const useCart = (tenantSlug: string) => {
     const addProduct = useCartStore((state) => state.addProduct);
@@ -9,13 +8,18 @@ export const useCart = (tenantSlug: string) => {
     const clearCart = useCartStore((state) => state.clearCart);
     const clearAllCarts = useCartStore((state) => state.clearAllCarts);
 
-    const productIds = useCartStore(useShallow((state) => state.tenantCarts[tenantSlug]?.productIds || []));
+    // ✅ ดึง items ออกมา
+    const items = useCartStore(useShallow((state) => state.tenantCarts[tenantSlug]?.items || []));
+    
+    // Helper: สร้าง list ของ ID เพื่อเช็คสถานะ (เช่น ปุ่ม Add/Remove)
+    const productIds = items.map(item => item.productId);
 
-    const toggleProduct = useCallback(( productId:string ) => {
+    // ✅ รับ options เพิ่ม
+    const toggleProduct = useCallback(( productId:string, options?: Partial<CartItem> ) => {
         if (productIds.includes(productId)) {
             removeProduct(tenantSlug, productId);
         } else {
-            addProduct(tenantSlug, productId);
+            addProduct(tenantSlug, productId, options); // ส่ง options ไปด้วย
         }
     }, [addProduct, removeProduct, productIds, tenantSlug]);
 
@@ -27,8 +31,8 @@ export const useCart = (tenantSlug: string) => {
         clearCart(tenantSlug);
     }, [tenantSlug, clearCart]);
 
-    const handleAddProduct = useCallback(( productId: string) => {
-        addProduct(tenantSlug, productId);
+    const handleAddProduct = useCallback(( productId: string, options?: Partial<CartItem>) => { // Update signature
+        addProduct(tenantSlug, productId, options);
     }, [addProduct, tenantSlug]);
 
     const handleRemoveProduct = useCallback(( productId: string) => {
@@ -36,6 +40,7 @@ export const useCart = (tenantSlug: string) => {
     }, [removeProduct, tenantSlug]);
 
     return {
+        items, // ส่ง items กลับไปเผื่อใช้
         productIds,
         addProduct: handleAddProduct,
         removeProduct: handleRemoveProduct,
@@ -43,6 +48,6 @@ export const useCart = (tenantSlug: string) => {
         clearAllCarts,
         toggleProduct,
         isProductInCart,
-        totalItems: productIds.length,
+        totalItems: items.length,
     };
 };
