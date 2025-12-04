@@ -277,6 +277,14 @@ export interface Product {
    * Price in THB (This is the base price)
    */
   price: number;
+  /**
+   * ความกว้างเริ่มต้น (เช่น 8)
+   */
+  width: number;
+  /**
+   * ความสูงเริ่มต้น (เช่น 10)
+   */
+  height: number;
   category?: (string | null) | Category;
   tags?: (string | Tag)[] | null;
   image?: (string | null) | Media;
@@ -525,6 +533,8 @@ export interface ProductsSelect<T extends boolean = true> {
         id?: T;
       };
   price?: T;
+  width?: T;
+  height?: T;
   category?: T;
   tags?: T;
   image?: T;

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { createJSONStorage , persist } from "zustand/middleware"
 
+// ✅ สร้าง Type สำหรับสินค้าในตะกร้า
 export interface CartItem {
     productId: string;
     width?: number;
@@ -10,12 +11,13 @@ export interface CartItem {
     price?: number;
 }
 
-interface TenantCard {
-    items: CartItem[];
+interface TenantCart {
+    items: CartItem[]; // ✅ เปลี่ยนจาก productIds: string[] เป็น items
 };
 
 interface CartState {
-    tenantCarts : Record<string, TenantCard>;
+    tenantCarts : Record<string, TenantCart>;
+    // ✅ อัปเดตฟังก์ชันรับ options
     addProduct: (tenantSlug: string, productId: string, options?: Partial<CartItem>) => void;
     removeProduct: (tenantSlug: string, productId: string) => void;
     clearCart: (tenantSlug: string) => void;
@@ -29,8 +31,8 @@ export const useCartStore = create<CartState>()(
             addProduct: (tenantSlug, productId, options) =>
                 set((state) => {
                     const currentItems = state.tenantCarts[tenantSlug]?.items || [];
-                    // เช็คว่ามีสินค้านี้อยู่แล้วหรือไม่ (Logic เดิมคือ toggle ถ้ามีให้ลบ แต่ถ้าจะเก็บ Option อาจต้องปรับ Logic ในอนาคต)
-                    // เบื้องต้นถ้ามี ID เดิมอยู่แล้ว จะไม่เพิ่มซ้ำ (หรือจะให้เพิ่มซ้ำได้ถ้า Option ต่างกันก็ได้)
+                    // ตรวจสอบว่ามีสินค้านี้อยู่แล้วหรือไม่ (โดยดูที่ ID)
+                    // *หมายเหตุ: ถ้าต้องการให้สินค้าเดียวกันแต่คนละ Option แยกแถวกัน ต้องปรับ logic ตรงนี้เพิ่ม
                     const existingItemIndex = currentItems.findIndex(item => item.productId === productId);
                     
                     let newItems = [...currentItems];

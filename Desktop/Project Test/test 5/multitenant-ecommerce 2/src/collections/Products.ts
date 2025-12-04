@@ -100,6 +100,27 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      type: "row", // จัดให้อยู่แถวเดียวกัน
+      fields: [
+        {
+          name: "width",
+          type: "number",
+          required: true,
+          defaultValue: 8,
+          label: "Default Width (inches)",
+          admin: { description: "ความกว้างเริ่มต้น (เช่น 8)" },
+        },
+        {
+          name: "height",
+          type: "number",
+          required: true,
+          defaultValue: 10,
+          label: "Default Height (inches)",
+          admin: { description: "ความสูงเริ่มต้น (เช่น 10)" },
+        },
+      ],
+    },
+    {
       name: "category",
       type: "relationship",
       relationTo: "categories",

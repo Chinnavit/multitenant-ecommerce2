@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Fragment, useState, useEffect, useRef, ChangeEvent } from "react";
+import {
+  Fragment,
+  useState,
+  useEffect,
+  useRef,
+  ChangeEvent,
+  useCallback,
+} from "react";
 import dynamic from "next/dynamic";
 import { toast } from "sonner";
 import {
@@ -12,9 +19,11 @@ import {
   Check,
   UploadCloud,
   XCircle,
+  RotateCcw,
 } from "lucide-react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { RichText } from "@payloadcms/richtext-lexical/react";
+import Cropper, { Area } from "react-easy-crop";
 
 import { useTRPC } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
@@ -23,6 +32,16 @@ import { StarRating } from "@/components/star-rating";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Slider } from "@/components/ui/slider";
+
 import { formatCurrency, generateTenantURL, cn } from "@/lib/utils";
 
 const CartButton = dynamic(
@@ -53,9 +72,13 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [isCopied, setIsCopied] = useState(false);
 
+  // ✅ 1. ใช้ค่าเริ่มต้นจาก Database (ถ้าไม่มีให้ใช้ 8x10)
+  const defaultWidth = data.width || 8;
+  const defaultHeight = data.height || 10;
+
   // --- Logic State ---
-  const [width, setWidth] = useState<number>(8);
-  const [height, setHeight] = useState<number>(10);
+  const [width, setWidth] = useState<number>(defaultWidth);
+  const [height, setHeight] = useState<number>(defaultHeight);
 
   const [hasMat, setHasMat] = useState<boolean>(false);
   const [matColor, setMatColor] = useState<string>(
@@ -70,8 +93,15 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const [calculatedPrice, setCalculatedPrice] = useState<number>(data.price);
 
-  // Upload Logic
+  // --- Upload & Crop Logic ---
   const [userImage, setUserImage] = useState<string | null>(null);
+  const [tempImage, setTempImage] = useState<string | null>(null);
+  const [isCropping, setIsCropping] = useState(false);
+
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (event: ChangeEvent<HTMLInputElement>) => {
@@ -83,10 +113,51 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
       }
       const reader = new FileReader();
       reader.onload = (e) => {
-        setUserImage(e.target?.result as string);
+        setTempImage(e.target?.result as string);
+        setIsCropping(true);
+        setZoom(1);
+        setCrop({ x: 0, y: 0 });
       };
       reader.readAsDataURL(file);
-      toast.success("Photo uploaded for preview.");
+    }
+    // หมายเหตุ: เราไม่ reset value ตรงนี้ เพราะต้องรอ Crop หรือ Cancel ก่อน
+  };
+
+  const onCropComplete = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    []
+  );
+
+  // ✅ เพิ่มฟังก์ชันนี้: สำหรับกดปุ่ม Cancel ในหน้า Crop
+  const handleCropCancel = () => {
+    setIsCropping(false);
+    setTempImage(null);
+    // สำคัญ: ล้างค่า input file เพื่อให้เลือกไฟล์เดิมหรือไฟล์ใหม่ได้อีกรอบ
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropConfirm = async () => {
+    if (!tempImage || !croppedAreaPixels) return;
+
+    try {
+      const croppedImage = await getCroppedImg(tempImage, croppedAreaPixels);
+      setUserImage(croppedImage);
+      setIsCropping(false);
+      setTempImage(null);
+
+      // ล้างค่า input file หลัง crop เสร็จ เผื่ออยาก upload ใหม่
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+      toast.success("Image cropped and applied!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to crop image");
     }
   };
 
@@ -98,23 +169,29 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     toast.info("Photo removed. Showing original product image.");
   };
 
+  // ... (useEffect และ Handlers อื่นๆ เหมือนเดิม)
   useEffect(() => {
-    const area = width * height;
-    const framePricePerSqIn = 0.5;
+    // คำนวณพื้นที่ปัจจุบัน และ พื้นที่มาตรฐาน
+    const currentArea = width * height;
+    const defaultArea = defaultWidth * defaultHeight;
 
-    let total = data.price + area * framePricePerSqIn;
+    const framePricePerSqIn = 0.5; // (หรือ 0.1 ตามที่คุณตั้งไว้)
 
+    // ✅ สูตรใหม่: ราคาเริ่มต้น + (ส่วนต่างพื้นที่ * ราคาต่อหน่วย)
+    // ถ้าเลือกขนาดเท่าเดิม (currentArea == defaultArea) ผลลัพธ์จะเป็น 0 -> ราคาจะเป็น 500 เท่าเดิม
+    let total = data.price + (currentArea - defaultArea) * framePricePerSqIn;
+
+    // บวกราคา Option อื่นๆ (Mat, Protection) ตามปกติ
     if (hasMat) {
       total += 20;
     }
 
     if (hasProtection && protectionType) {
+      // ... logic protection เดิม
       const selectedOption = protectionOptions.find(
         (opt) => opt.slug === protectionType
       );
-      if (selectedOption) {
-        total += selectedOption.price;
-      }
+      if (selectedOption) total += selectedOption.price;
     }
 
     setCalculatedPrice(total);
@@ -126,6 +203,8 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     protectionType,
     data.price,
     protectionOptions,
+    defaultWidth,
+    defaultHeight,
   ]);
 
   const handleDimensionChange = (
@@ -148,14 +227,67 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   return (
     <div className="px-4 lg:px-12 py-10">
+      {/* --- Crop Modal (Dialog) --- */}
+      <Dialog
+        open={isCropping}
+        onOpenChange={(open) => {
+          if (!open) {
+            // กรณีปิดด้วยการคลิกข้างนอก หรือกด ESC ก็ให้เรียกฟังก์ชัน Cancel เหมือนกัน
+            handleCropCancel();
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Crop Your Image</DialogTitle>
+            <DialogDescription>
+              Drag to reposition and use the slider to zoom. The aspect ratio is
+              locked to your frame size ({width}" x {height}").
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="relative w-full h-[400px] bg-black/5 rounded-md overflow-hidden mt-4">
+            {tempImage && (
+              <Cropper
+                image={tempImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={width / height}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            )}
+          </div>
+
+          <div className="py-4 flex items-center gap-4">
+            <span className="text-sm font-medium min-w-[3rem]">Zoom</span>
+            <Slider
+              value={[zoom]}
+              min={1}
+              max={3}
+              step={0.1}
+              onValueChange={(vals) => setZoom(vals[0] ?? 1)}
+              className="flex-1"
+            />
+          </div>
+
+          <DialogFooter>
+            {/* ✅ แก้ไข: เรียกใช้ handleCropCancel แทนการ set state ตรงๆ */}
+            <Button variant="outline" onClick={handleCropCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleCropConfirm}>Apply Crop</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
         {/* --- LEFT: Image Section --- */}
         <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto bg-gray-100 flex flex-col justify-center items-center p-8">
-          {/* ✅ 1. ตัวกรอบ Mat Board (Container) */}
           <div
             className="relative w-full h-full max-h-[600px] shadow-xl transition-all duration-300 ease-in-out flex items-center justify-center overflow-hidden"
             style={{
-              // ✅ แก้ไข: แสดง Mat สีและ Padding เฉพาะเมื่อ hasMat=true AND มี userImage
               backgroundColor:
                 hasMat && userImage
                   ? matColors.find((c: any) => c.id === matColor)?.hex ||
@@ -164,7 +296,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               padding: hasMat && userImage ? "40px" : "0px",
             }}
           >
-            {/* 2. พื้นที่วางรูปภาพ */}
             <div className="relative w-full h-full bg-white shadow-sm overflow-hidden">
               <Image
                 src={userImage || data.image?.url || "/placeholder.png"}
@@ -174,13 +305,11 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               />
             </div>
 
-            {/* ✅ 3. เงาด้านใน Mat (แสดงเฉพาะเมื่อมี userImage) */}
             {hasMat && userImage && (
               <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_20px_rgba(0,0,0,0.2)] z-10"></div>
             )}
           </div>
 
-          {/* ปุ่ม Upload / Remove */}
           <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
             <input
               type="file"
@@ -188,7 +317,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               ref={fileInputRef}
               onChange={handleFileUpload}
               className="hidden"
-              // ✅ เพิ่มบรรทัดนี้เพื่อแก้ Error ครับ
               aria-label="Upload your photo"
             />
             {!userImage ? (
@@ -217,10 +345,10 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
         {/* --- RIGHT: Content --- */}
         <div className="flex flex-col h-full">
+          {/* ... (ส่วนเนื้อหาด้านขวา เหมือนเดิมทุกประการ) ... */}
           <div className="p-6 pb-0 flex flex-col gap-4">
             <h1 className="text-4xl font-medium">{data.name}</h1>
 
-            {/* Price & Actions */}
             <div className="flex items-start justify-between w-full gap-4">
               <div className="flex items-center h-10">
                 <p className="text-3xl font-bold text-black">
@@ -266,7 +394,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </div>
             </div>
 
-            {/* Store & Ratings */}
             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
               <Link
                 href={generateTenantURL(tenantSlug)}
@@ -294,7 +421,6 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </div>
             </div>
 
-            {/* --- Customization Section --- */}
             <div className="pt-6 space-y-6">
               {/* 1. Size Selection */}
               <div>
@@ -504,11 +630,9 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                 )}
               </div>
             </div>
-            {/* --- End Customization --- */}
           </div>
 
           <div className="mx-6 mt-6 border-b"></div>
-
           <div className="p-6 pt-4">
             <h3 className="text-lg font-semibold mb-2">Description</h3>
             {data.description ? (
@@ -519,9 +643,7 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
               </p>
             )}
           </div>
-
           <div className="mx-6 border-b"></div>
-
           <div className="m-6 p-6 border rounded-lg">
             <h3 className="text-lg font-semibold mb-4">Customer Reviews</h3>
             <div className="flex items-center gap-x-2 font-medium mb-4">
@@ -551,6 +673,61 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
     </div>
   );
 };
+
+// --- Utility Functions ---
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", (error) => reject(error));
+    image.setAttribute("crossOrigin", "anonymous");
+    image.src = url;
+  });
+
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: Area,
+  rotation = 0
+): Promise<string> {
+  const image = await createImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("No 2d context");
+  }
+
+  const maxSize = Math.max(image.width, image.height);
+  const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
+
+  canvas.width = safeArea;
+  canvas.height = safeArea;
+
+  ctx.translate(safeArea / 2, safeArea / 2);
+  ctx.rotate((rotation * Math.PI) / 180);
+  ctx.translate(-safeArea / 2, -safeArea / 2);
+
+  ctx.drawImage(
+    image,
+    safeArea / 2 - image.width * 0.5,
+    safeArea / 2 - image.height * 0.5
+  );
+
+  const data = ctx.getImageData(0, 0, safeArea, safeArea);
+
+  canvas.width = pixelCrop.width;
+  canvas.height = pixelCrop.height;
+
+  ctx.putImageData(
+    data,
+    0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x,
+    0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y
+  );
+
+  return new Promise((resolve) => {
+    resolve(canvas.toDataURL("image/jpeg"));
+  });
+}
 
 export const ProductViewSkeleton = () => {
   return (
