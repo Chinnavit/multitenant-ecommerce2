@@ -289,40 +289,95 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
       <div className="border rounded-sm bg-white overflow-hidden grid grid-cols-1 lg:grid-cols-2">
         {/* --- LEFT: Image Section --- */}
-        <div className="relative border-b lg:border-b-0 lg:border-r aspect-square lg:aspect-auto bg-gray-100 flex flex-col justify-center items-center p-8">
-          <div
-            className="relative w-full h-full max-h-[600px] shadow-xl transition-all duration-300 ease-in-out flex items-center justify-center overflow-hidden"
+        <div className="relative border-b lg:border-b-0 lg:border-r bg-gray-100 flex flex-col justify-center items-center p-8 min-h-[600px]">
+          
+          <div 
+            className="relative transition-all duration-300 ease-in-out"
             style={{
-              backgroundColor:
-                hasMat && userImage
-                  ? matColors.find((c: any) => c.id === matColor)?.hex ||
-                    "#FFFFFF"
-                  : "transparent",
-              padding: hasMat && userImage ? "40px" : "0px",
+               width: '100%', 
+               maxWidth: '450px',
+               // ถ้ามีรูป User ให้ใช้สัดส่วนตามที่กำหนด (Width/Height)
+               // ถ้าไม่มีรูป ให้ใช้ 'auto' หรือสัดส่วนตามรูปสินค้าเดิม
+               aspectRatio: userImage ? `${width} / ${height}` : 'auto' 
             }}
           >
-            <div className="relative w-full h-full bg-white shadow-sm overflow-hidden">
-              <Image
-                src={userImage || data.image?.url || "/placeholder.png"}
-                alt={userImage ? "User Uploaded Image" : data.name}
-                fill
-                className="object-cover"
-              />
-            </div>
-
-            {hasMat && userImage && (
-              <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_20px_rgba(0,0,0,0.2)] z-10"></div>
+            
+            {/* CASE 1: ยังไม่อัปโหลดรูป (แสดงรูปสินค้าต้นฉบับที่เป็น JPG) */}
+            {!userImage && (
+                <div className="relative w-full aspect-[3/4] bg-white shadow-xl overflow-hidden rounded-sm">
+                     <Image
+                        src={data.image?.url || "/placeholder.png"} 
+                        alt={data.name}
+                        fill
+                        className="object-contain"
+                        priority
+                      />
+                </div>
             )}
+
+            {/* CASE 2: อัปโหลดรูปแล้ว (สร้างกรอบด้วย CSS Border) */}
+            {userImage && (
+                <div 
+                    className="relative w-full h-full shadow-2xl flex items-center justify-center"
+                    style={{
+                        // 1. สร้างกรอบ (Frame): ใช้ Border
+                        border: '24px solid #1a1a1a', // <-- สีและความหนาของกรอบ (แก้สีตรงนี้ได้)
+                        borderRadius: '2px',         // ลบเหลี่ยมกรอบนิดหน่อย
+                        backgroundColor: '#fff',     // สีพื้นหลังรอง
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', // เงาตกกระทบพื้นหลัง
+                        
+                        // ถ้าอยากได้กรอบไม้ (แบบง่ายๆ) ลองเปิดใช้บรรทัดล่างนี้แทน
+                        // border: '24px solid #8B5A2B', 
+                    }}
+                >
+                    {/* ส่วนของ Mat (ขอบกระดาษ) */}
+                    <div 
+                        className="relative w-full h-full flex items-center justify-center overflow-hidden transition-all duration-300"
+                        style={{
+                            // 2. สี Mat: ถ้าเลือก Mat ให้ใช้สีที่เลือก, ถ้าไม่เลือกให้เป็นสีเดียวกับรูป User (ใส)
+                            backgroundColor: hasMat 
+                                ? (matColors.find((c: any) => c.id === matColor)?.hex || "#FFFFFF")
+                                : "#FFFFFF", 
+                            
+                            // 3. ความหนา Mat: ถ้ามี Mat ให้ดันเข้ามา 30px
+                            padding: hasMat ? '30px' : '0px',
+                            
+                            // เงาด้านในกรอบ (เพื่อให้ดูมีความลึกระหว่างกรอบไม้กับ Mat)
+                            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)'
+                        }}
+                    >
+                        
+                         {/* Wrapper รูป User */}
+                         <div className="relative w-full h-full bg-white shadow-sm">
+                             <Image
+                               src={userImage} 
+                               alt="User Work"
+                               fill
+                               className="object-cover"
+                             />
+                             
+                             {/* เงาด้านใน Mat (Bevel Cut Effect) */}
+                             {hasMat && (
+                                <div className="absolute inset-0 pointer-events-none shadow-[inset_1px_1px_4px_rgba(0,0,0,0.2)] z-10"></div>
+                             )}
+                         </div>
+
+                    </div>
+                </div>
+            )}
+
           </div>
 
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2 z-20">
-            <input
+          {/* --- ปุ่ม Upload / Remove (คงเดิม) --- */}
+          <div className="mt-8 flex gap-2 z-30">
+             <input
+              id="image-upload-input"
+              title="Upload your photo"
               type="file"
               accept="image/jpeg, image/png"
               ref={fileInputRef}
               onChange={handleFileUpload}
               className="hidden"
-              aria-label="Upload your photo"
             />
             {!userImage ? (
               <Button
