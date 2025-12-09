@@ -56,6 +56,15 @@ const CartButton = dynamic(
   }
 );
 
+// --- CONSTANTS: ตัวเลือกสีกรอบ (เติมส่วนนี้ลงไปครับ) ---
+const FRAME_OPTIONS = [
+  { id: 'black', name: 'Modern Black', hex: '#1a1a1a' },
+  { id: 'white', name: 'Classic White', hex: '#f0f0f0' },
+  { id: 'wood', name: 'Natural Wood', hex: '#8B5A2B' },
+  { id: 'gold', name: 'Luxury Gold', hex: '#D4AF37' },
+  { id: 'silver', name: 'Sleek Silver', hex: '#C0C0C0' },
+];
+
 interface ProductViewProps {
   productId: string;
   tenantSlug: string;
@@ -74,6 +83,21 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
 
   const defaultWidth = data.width || 8;
   const defaultHeight = data.height || 10;
+
+  // -------------------------------------------------------
+  // ✅ NEW LOGIC: ตรวจจับชื่อสินค้าเพื่อตั้งค่าสีเริ่มต้น
+  // -------------------------------------------------------
+  const initialFrameColor = (() => {
+    const name = data.name.toLowerCase();
+    if (name.includes('wood')) return '#8B5A2B';
+    if (name.includes('gold')) return '#D4AF37';
+    if (name.includes('white')) return '#f0f0f0';
+    if (name.includes('silver')) return '#C0C0C0';
+    return '#1a1a1a'; // Default เป็นสีดำ
+  })();
+  // ✅ STATE: เก็บค่าสีของกรอบ (ใช้ค่าเริ่มต้นจาก Logic ข้างบน)
+  const [frameColor, setFrameColor] = useState<string>(initialFrameColor);
+  
   // --- Logic State ---
   const [width, setWidth] = useState<number>(defaultWidth);
   const [height, setHeight] = useState<number>(defaultHeight);
@@ -318,16 +342,13 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
             {/* CASE 2: อัปโหลดรูปแล้ว (สร้างกรอบด้วย CSS Border) */}
             {userImage && (
                 <div 
-                    className="relative w-full h-full shadow-2xl flex items-center justify-center"
+                    className="relative w-full h-full shadow-2xl flex items-center justify-center transition-all duration-300"
                     style={{
-                        // 1. สร้างกรอบ (Frame): ใช้ Border
-                        border: '24px solid #1a1a1a', // <-- สีและความหนาของกรอบ (แก้สีตรงนี้ได้)
-                        borderRadius: '2px',         // ลบเหลี่ยมกรอบนิดหน่อย
-                        backgroundColor: '#fff',     // สีพื้นหลังรอง
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', // เงาตกกระทบพื้นหลัง
-                        
-                        // ถ้าอยากได้กรอบไม้ (แบบง่ายๆ) ลองเปิดใช้บรรทัดล่างนี้แทน
-                        // border: '24px solid #8B5A2B', 
+                        // ✅ ใช้ frameColor ที่ User เลือก หรือที่ Logic คำนวณมาให้
+                        border: `24px solid ${frameColor}`, 
+                        borderRadius: '2px',         
+                        backgroundColor: '#fff',     
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.5)', 
                     }}
                 >
                     {/* ส่วนของ Mat (ขอบกระดาษ) */}
@@ -530,6 +551,62 @@ export const ProductView = ({ productId, tenantSlug }: ProductViewProps) => {
                     />
                   </div>
                 </div>
+              </div>
+              
+              {/* --- NEW: Frame Color Selection (วางไว้ก่อน Mat Selection) --- */}
+              <div className="flex flex-col gap-4 border p-4 rounded-md bg-gray-50/50 mb-6">
+                 {/* ส่วนหัวข้อ (Header) */}
+                 <div className="space-y-0.5">
+                    <Label className="text-base font-medium text-black">
+                      Frame Color
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Choose a finish for your custom frame.
+                    </p>
+                 </div>
+                 
+                 {/* ส่วนตัวเลือก (Options) - เพิ่มเส้นแบ่ง (border-t) ตรงนี้เพื่อให้เหมือน Mat Board */}
+                 <div className="pt-2 border-t mt-2">
+                    <span className="text-xs text-muted-foreground mb-3 block font-medium uppercase tracking-wider">
+                      Select Frame
+                    </span>
+                    
+                    <div className="flex gap-3 flex-wrap">
+                        {FRAME_OPTIONS.map((option) => (
+                          <button
+                            key={option.id}
+                            onClick={() => setFrameColor(option.hex)}
+                            className={cn(
+                              "group relative size-10 rounded-full border-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all",
+                              "border-gray-200", 
+                              frameColor === option.hex
+                                ? "ring-2 ring-offset-2 ring-black border-transparent scale-110"
+                                : "hover:scale-105"
+                            )}
+                            style={{ backgroundColor: option.hex }}
+                            title={option.name}
+                          >
+                            {frameColor === option.hex && (
+                              <span className="absolute inset-0 flex items-center justify-center">
+                                <Check 
+                                  className={cn(
+                                    "size-5", 
+                                    ['white', 'silver', 'gold'].includes(option.id) ? "text-black" : "text-white"
+                                  )} 
+                                />
+                              </span>
+                            )}
+                            <span className="sr-only">{option.name}</span>
+                          </button>
+                        ))}
+                    </div>
+
+                    <p className="text-xs text-muted-foreground mt-2">
+                        Selected: <span className="font-medium text-black">
+                          {FRAME_OPTIONS.find(o => o.hex === frameColor)?.name || "Custom"}
+                        </span>
+                    </p>
+                 </div>
               </div>
 
               {/* 2. Mat Selection */}
